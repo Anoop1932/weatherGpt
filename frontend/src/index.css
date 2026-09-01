@@ -1,0 +1,64 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html, body {
+    font-family: 'Inter', 'Noto Sans', 'Noto Sans Devanagari', sans-serif;
+    background: linear-gradient(180deg, #f0f6ff 0%, #e2e8f0 100%);
+    color: #0f172a;
+    min-height: 100vh;
+    overflow-x: hidden;
+    scroll-behavior: smooth;
+  }
+
+  h1, h2, h3, h4, .font-heading {
+    font-family: 'Space Grotesk', sans-serif;
+    color: #0f172a;
+  }
+}
+
+/* Atmospheric Weather Section Styling (Light, Clean, Weather-First) */
+.weather-panel {
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(226, 232, 240, 0.9);
+  border-radius: 1.25rem;
+  box-shadow: 0 1px 3px 0 rgba(15, 23, 42, 0.04), 0 1px 2px -1px rgba(15, 23, 42, 0.04);
+  backdrop-filter: blur(8px);
+}
+
+.weather-panel-subtle {
+  background: rgba(248, 250, 252, 0.85);
+  border: 1px solid rgba(226, 232, 240, 0.8);
+  border-radius: 1rem;
+}
+
+/* Sky Atmosphere Background Gradients */
+.sky-clear {
+  background: radial-gradient(circle at 50% 0%, rgba(254, 243, 199, 0.6) 0%, rgba(240, 246, 255, 1) 70%);
+}
+
+.sky-rain {
+  background: radial-gradient(circle at 50% 0%, rgba(224, 242, 254, 0.8) 0%, rgba(240, 246, 255, 1) 70%);
+}
+
+.sky-cloudy {
+  background: radial-gradient(circle at 50% 0%, rgba(241, 245, 249, 0.9) 0%, rgba(240, 246, 255, 1) 70%);
+}
+
+/* Hide scrollbar utility */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Leaflet Map Styling */
+.leaflet-container {
+  width: 100%;
+  height: 100%;
+  border-radius: 1rem;
+  z-index: 1;
+}
