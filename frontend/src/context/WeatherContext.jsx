@@ -16,6 +16,7 @@ export const WeatherProvider = ({ children }) => {
   const [location, setLocation] = useState('Amritsar');
   const [locationCoords, setLocationCoords] = useState({ latitude: 31.6340, longitude: 74.8723 });
   const [language, setLanguage] = useState('en');
+  const [theme, setTheme] = useState(() => localStorage.getItem('weathergpt_theme') || 'light');
   const [currentWeather, setCurrentWeather] = useState(null);
   const [forecast, setForecast] = useState(null);
   const [warnings, setWarnings] = useState([]);
@@ -23,18 +24,37 @@ export const WeatherProvider = ({ children }) => {
   const [geoLoading, setGeoLoading] = useState(false);
   const [error, setError] = useState(null);
   const [selectedForecastIndex, setSelectedForecastIndex] = useState(0);
+  
+  // Conversation session state memory
   const [activeContextLocation, setActiveContextLocation] = useState('Amritsar');
+  const [activeContextDate, setActiveContextDate] = useState(null);
+  const [activeContextIntent, setActiveContextIntent] = useState(null);
+
   const [recentLocs, setRecentLocs] = useState(getRecentLocations());
   const [chatMessages, setChatMessages] = useState([
     {
       sender: 'assistant',
-      text: 'Namaste! I am WeatherGPT. Ask me natural questions by text or voice: "What\'s the weather in London?", "Delhi weather on Sunday?", or "15 September nu Mumbai da mausam?"',
+      text: 'Namaste! I am WeatherGPT. Ask me natural questions by text or voice: "Kal Patna Bihar mein barish hogi?", "Jalandhar ka weather kya hai is time?", or "Kapurthala Punjab mein barish hogi?"',
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       risk_level: 'LOW',
       confidence: 'HIGH',
       source: 'Open-Meteo Meteorological Service'
     }
   ]);
+
+  // Handle Theme (Light / Dark)
+  useEffect(() => {
+    localStorage.setItem('weathergpt_theme', theme);
+    if (theme === 'dark') {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, [theme]);
+
+  const toggleTheme = () => {
+    setTheme(prev => (prev === 'light' ? 'dark' : 'light'));
+  };
 
   useEffect(() => {
     applyTextDirection(language);
@@ -127,7 +147,6 @@ export const WeatherProvider = ({ children }) => {
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     };
 
-    // Optimistically update conversation feed with user message immediately
     setChatMessages((prev) => [...prev, userMsg]);
 
     try {
@@ -136,18 +155,27 @@ export const WeatherProvider = ({ children }) => {
         location: activeContextLocation || location,
         latitude: locationCoords.latitude,
         longitude: locationCoords.longitude,
-        language: language
+        language: language,
+        last_location: activeContextLocation,
+        last_date: activeContextDate,
+        last_intent: activeContextIntent
       });
       const data = resp.data;
 
+      // Update conversation session context memory
       if (data.resolved_location) {
         setActiveContextLocation(data.resolved_location);
-        // If explicit location in query differs from current location, sync main dashboard weather
         if (data.weather_facts?.latitude && data.weather_facts?.longitude && data.resolved_location.toLowerCase() !== location.toLowerCase()) {
           setLocation(data.resolved_location);
           setLocationCoords({ latitude: data.weather_facts.latitude, longitude: data.weather_facts.longitude });
           fetchWeatherData(data.resolved_location, { latitude: data.weather_facts.latitude, longitude: data.weather_facts.longitude });
         }
+      }
+      if (data.resolved_date) {
+        setActiveContextDate(data.resolved_date);
+      }
+      if (data.extracted_intent) {
+        setActiveContextIntent(data.extracted_intent);
       }
 
       const assistantMsg = {
@@ -159,14 +187,16 @@ export const WeatherProvider = ({ children }) => {
         source: data.source,
         updated_at: data.updated_at,
         weather_facts: data.weather_facts,
-        risk_evaluation: data.risk_evaluation
+        risk_evaluation: data.risk_evaluation,
+        is_non_weather: data.is_non_weather,
+        is_missing_location: data.is_missing_location
       };
       setChatMessages((prev) => [...prev, assistantMsg]);
       return assistantMsg;
     } catch (err) {
       const fallbackMsg = {
         sender: 'assistant',
-        text: `Based on verified weather evidence for ${activeContextLocation || location}, temperature is ${currentWeather?.temperature_c || 30}°C and rain probability is ${currentWeather?.rain_probability || 20}%. Risk level: ${currentWeather?.rain_probability > 50 ? 'MODERATE' : 'LOW'}.`,
+        text: `Based on verified weather evidence for ${activeContextLocation || location}, temperature is ${currentWeather?.temperature_c || 30}°C and rain probability is ${currentWeather?.rain_probability || 20}%.`,
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         risk_level: 'LOW',
         confidence: 'HIGH',
@@ -177,7 +207,6 @@ export const WeatherProvider = ({ children }) => {
     }
   };
 
-  // Calculate active weather based on selected 7-day forecast index
   let activeWeather = currentWeather;
   if (selectedForecastIndex > 0 && forecast?.daily?.[selectedForecastIndex]) {
     const dayItem = forecast.daily[selectedForecastIndex];
@@ -205,6 +234,8 @@ export const WeatherProvider = ({ children }) => {
       locationCoords,
       language,
       setLanguage,
+      theme,
+      toggleTheme,
       currentWeather,
       activeWeather,
       forecast,

@@ -15,6 +15,9 @@ async def process_voice_query(
     query_req = WeatherQueryRequest(
         query=req.audio_text,
         location=req.location,
-        language=req.language
+        language=req.language,
+        last_location=req.last_location,
+        last_date=req.last_date,
+        last_intent=req.last_intent
     )
     return await process_weather_query(query_req, db)

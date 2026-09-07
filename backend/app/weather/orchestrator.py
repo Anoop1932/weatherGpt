@@ -19,7 +19,8 @@ class WeatherOrchestrator:
         self.fallback_provider: WeatherProvider = FallbackProvider()
 
     async def get_current_weather(self, lat: float, lon: float, location_name: str) -> Dict[str, Any]:
-        cache_key = f"weather:current:{round(lat, 2)}:{round(lon, 2)}"
+        sanitized_loc = location_name.strip().lower()
+        cache_key = f"weather:current:{round(lat, 3)}:{round(lon, 3)}:{sanitized_loc}"
         
         # Check cache unless DEMO_MODE forces fresh
         if not settings.DEMO_MODE:
@@ -54,7 +55,8 @@ class WeatherOrchestrator:
                 return res
 
     async def get_forecast(self, lat: float, lon: float, location_name: str, days: int = 7) -> Dict[str, Any]:
-        cache_key = f"weather:forecast:{round(lat, 2)}:{round(lon, 2)}:{days}"
+        sanitized_loc = location_name.strip().lower()
+        cache_key = f"weather:forecast:{round(lat, 3)}:{round(lon, 3)}:{sanitized_loc}:{days}"
 
         if not settings.DEMO_MODE:
             cached = await cache_manager.get(cache_key)
@@ -114,7 +116,8 @@ class WeatherOrchestrator:
         return final_fc
 
     async def get_warnings(self, lat: float, lon: float, location_name: str) -> List[Dict[str, Any]]:
-        cache_key = f"weather:warnings:{round(lat, 2)}:{round(lon, 2)}"
+        sanitized_loc = location_name.strip().lower()
+        cache_key = f"weather:warnings:{round(lat, 3)}:{round(lon, 3)}:{sanitized_loc}"
         cached = await cache_manager.get(cache_key)
         if cached and not settings.DEMO_MODE:
             return cached

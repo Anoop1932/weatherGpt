@@ -87,8 +87,11 @@ class WeatherQueryRequest(BaseModel):
     location: Optional[str] = None
     latitude: Optional[float] = None
     longitude: Optional[float] = None
-    language: Optional[str] = "auto" # auto, en, hi
+    language: Optional[str] = "auto" # auto, en, hi, pa
     context_type: Optional[str] = "general" # general, travel, agriculture, event
+    last_location: Optional[str] = None
+    last_date: Optional[str] = None
+    last_intent: Optional[str] = None
 
 
 class RiskEvaluation(BaseModel):
@@ -106,19 +109,25 @@ class WeatherQueryResponse(BaseModel):
     extracted_intent: str
     resolved_location: str
     resolved_date: str
-    weather_facts: Dict[str, Any]
-    risk_evaluation: RiskEvaluation
+    weather_facts: Optional[Dict[str, Any]] = None
+    risk_evaluation: Optional[RiskEvaluation] = None
     grounded_answer: str
-    source: str
-    updated_at: str
-    confidence: str
+    source: str = "WeatherGPT Intelligence Engine"
+    updated_at: str = "Just now"
+    confidence: str = "HIGH"
     disagreement_details: Optional[str] = None
+    is_non_weather: bool = False
+    is_missing_location: bool = False
+    is_state_query: bool = False
 
 
 class VoiceQueryRequest(BaseModel):
     audio_text: str
     language: str = "en"
     location: Optional[str] = None
+    last_location: Optional[str] = None
+    last_date: Optional[str] = None
+    last_intent: Optional[str] = None
 
 
 class HistoricalWeatherItem(BaseModel):

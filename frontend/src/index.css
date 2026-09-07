@@ -10,21 +10,38 @@
     min-height: 100vh;
     overflow-x: hidden;
     scroll-behavior: smooth;
+    transition: background-color 0.3s ease, color 0.3s ease;
+  }
+
+  html.dark body {
+    background: linear-gradient(180deg, #0b132b 0%, #1c2541 100%);
+    color: #f8fafc;
   }
 
   h1, h2, h3, h4, .font-heading {
     font-family: 'Space Grotesk', sans-serif;
     color: #0f172a;
   }
+
+  html.dark h1, html.dark h2, html.dark h3, html.dark h4, html.dark .font-heading {
+    color: #ffffff;
+  }
 }
 
-/* Atmospheric Weather Section Styling (Light, Clean, Weather-First) */
+/* Atmospheric Weather Section Styling (Light & Sleek Dark) */
 .weather-panel {
   background: rgba(255, 255, 255, 0.92);
   border: 1px solid rgba(226, 232, 240, 0.9);
   border-radius: 1.25rem;
   box-shadow: 0 1px 3px 0 rgba(15, 23, 42, 0.04), 0 1px 2px -1px rgba(15, 23, 42, 0.04);
   backdrop-filter: blur(8px);
+  transition: background-color 0.3s ease, border-color 0.3s ease;
+}
+
+html.dark .weather-panel {
+  background: rgba(30, 41, 59, 0.92);
+  border: 1px solid rgba(51, 65, 85, 0.9);
+  box-shadow: 0 4px 12px 0 rgba(0, 0, 0, 0.3);
 }
 
 .weather-panel-subtle {
@@ -33,17 +50,34 @@
   border-radius: 1rem;
 }
 
+html.dark .weather-panel-subtle {
+  background: rgba(15, 23, 42, 0.85);
+  border: 1px solid rgba(51, 65, 85, 0.8);
+}
+
 /* Sky Atmosphere Background Gradients */
 .sky-clear {
   background: radial-gradient(circle at 50% 0%, rgba(254, 243, 199, 0.6) 0%, rgba(240, 246, 255, 1) 70%);
+}
+
+html.dark .sky-clear {
+  background: radial-gradient(circle at 50% 0%, rgba(30, 58, 138, 0.4) 0%, rgba(11, 19, 43, 1) 70%);
 }
 
 .sky-rain {
   background: radial-gradient(circle at 50% 0%, rgba(224, 242, 254, 0.8) 0%, rgba(240, 246, 255, 1) 70%);
 }
 
+html.dark .sky-rain {
+  background: radial-gradient(circle at 50% 0%, rgba(14, 116, 144, 0.3) 0%, rgba(11, 19, 43, 1) 70%);
+}
+
 .sky-cloudy {
   background: radial-gradient(circle at 50% 0%, rgba(241, 245, 249, 0.9) 0%, rgba(240, 246, 255, 1) 70%);
+}
+
+html.dark .sky-cloudy {
+  background: radial-gradient(circle at 50% 0%, rgba(51, 65, 85, 0.5) 0%, rgba(11, 19, 43, 1) 70%);
 }
 
 /* Hide scrollbar utility */

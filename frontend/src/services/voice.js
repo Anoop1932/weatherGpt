@@ -93,7 +93,7 @@ export const speakText = (text, language = 'en', onStart, onEnd) => {
       .replace(/mm/g, ' millimeters');
   }
 
-  cleanText = cleanText.slice(0, 350).strip ? cleanText.slice(0, 350).strip() : cleanText.slice(0, 350);
+  cleanText = cleanText.slice(0, 350).trim();
 
   const utterance = new SpeechSynthesisUtterance(cleanText);
 
@@ -108,7 +108,7 @@ export const speakText = (text, language = 'en', onStart, onEnd) => {
   utterance.rate = 0.95;
   utterance.pitch = 1.0;
 
-  // Try to find a native matching voice from system voices
+  // Dynamically inspect browser TTS voices for native or closest matching voice
   const voices = window.speechSynthesis.getVoices();
   if (voices.length > 0) {
     let targetVoice = null;
@@ -135,4 +135,3 @@ export const speakText = (text, language = 'en', onStart, onEnd) => {
 
   window.speechSynthesis.speak(utterance);
 };
-
