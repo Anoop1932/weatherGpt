@@ -95,7 +95,7 @@ export const ChatWidget = () => {
     if (reply && reply.text) {
       speakText(
         reply.text,
-        language,
+        reply.detected_language || language,
         () => setIsSpeaking(true),
         () => setIsSpeaking(false)
       );
@@ -253,12 +253,12 @@ export const ChatWidget = () => {
                       <div className="flex items-center justify-between gap-2 mb-1 pb-1 border-b border-slate-200/80 dark:border-slate-700">
                         <span className="font-bold text-slate-900 dark:text-white text-[11px]">WeatherGPT</span>
                         <div className="flex items-center gap-2">
-                          {!msg.is_non_weather && !msg.is_missing_location && (
-                            <RiskBadge level={msg.risk_level || 'LOW'} />
+                          {msg.response_type === 'weather' && msg.risk_level && (
+                            <RiskBadge level={msg.risk_level} />
                           )}
                           <button
                             type="button"
-                            onClick={() => speakText(msg.text, language, () => setIsSpeaking(true), () => setIsSpeaking(false))}
+                            onClick={() => speakText(msg.text, msg.detected_language || language, () => setIsSpeaking(true), () => setIsSpeaking(false))}
                             className="p-1 rounded text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-700 transition"
                             title="Read aloud"
                           >
@@ -274,7 +274,7 @@ export const ChatWidget = () => {
                       <FormattedText text={msg.text} />
                     )}
 
-                    {!isUser && msg.weather_facts && !msg.is_non_weather && (
+                    {!isUser && msg.response_type === 'weather' && msg.weather_facts && (
                       <div className="mt-2 pt-2 border-t border-slate-200/80 dark:border-slate-700 grid grid-cols-2 sm:grid-cols-4 gap-2 text-[10px] text-slate-500 dark:text-slate-400 font-medium">
                         <div className="flex items-center gap-1">
                           {getWeatherIcon(msg.weather_facts.weather_code, true, "w-3.5 h-3.5")}

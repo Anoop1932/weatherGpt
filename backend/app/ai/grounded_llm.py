@@ -11,33 +11,67 @@ logger = logging.getLogger(__name__)
 
 class GroundedLLMEngine:
 
-    def generate_non_weather_answer(self, intent: str, lang: str) -> str:
+    def generate_non_weather_answer(self, intent: str, lang: str, query: str = "") -> str:
         """
-        Generates friendly conversational answers for non-weather queries (greetings, meta, thanks).
+        Generates friendly conversational answers for non-weather queries (greetings, meta, thanks, conversation, gibberish).
         """
-        if intent == "non_weather_greeting":
-            if lang == "hi":
-                return "नमस्ते! मैं WeatherGPT हूँ। मैं आपकी मौसम, बारिश, तापमान और पूर्वानुमान संबंधी सवालों में मदद कर सकता हूँ। आप किस शहर या स्थान का मौसम जानना चाहते हैं?"
-            elif lang == "pa":
-                return "ਸਤਿ ਸ਼੍ਰੀ ਅਕਾਲ! ਮੈਂ WeatherGPT ਹਾਂ। ਮੈਂ ਮੌਸਮ, ਮੀਂਹ, ਤਾਪਮਾਨ ਅਤੇ ਭਵਿੱਖਬਾਣੀ ਨਾਲ ਸੰਬੰਧਿਤ ਜਾਣਕਾਰੀ ਵਿੱਚ ਤੁਹਾਡੀ ਮਦਦ ਕਰ ਸਕਦਾ ਹਾਂ। ਤੁਸੀਂ ਕਿਸ ਸ਼ਹਿਰ ਦਾ ਮੌਸਮ ਦੇਖਣਾ ਚਾਹੁੰਦੇ ਹੋ?"
-            else:
-                return "Namaste & Welcome! I am WeatherGPT, your AI Weather Intelligence Assistant. How can I help you with weather, rain probability, or forecasts today?"
+        q_low = query.lower() if query else ""
 
-        elif intent == "non_weather_meta":
+        if intent in ["non_weather_greeting", "greeting"]:
             if lang == "hi":
-                return "मैं WeatherGPT हूँ — एक AI मौसम सहायक। आप मुझसे किसी भी शहर या स्थान का लाइव मौसम, कल/परसों की बारिश की संभावना, तापमान, हवा की गति, आर्द्रता (humidity) या कृषि व यात्रा संबंधी मौसम सलाह पूछ सकते हैं।"
+                return "नमस्ते! 👋 मैं WeatherGPT हूँ। आप मुझसे किसी भी शहर का मौसम, बारिश की संभावना, तापमान या पूर्वाअनुमान पूछ सकते हैं। आप किस स्थान का मौसम जानना चाहते हैं?"
             elif lang == "pa":
-                return "ਮੈਂ WeatherGPT ਹਾਂ — ਇੱਕ AI ਮੌਸਮ ਸਹਾਇਕ। ਤੁਸੀਂ ਮੇਰੇ ਤੋਂ ਕਿਸੇ ਵੀ ਸ਼ਹਿਰ ਦਾ ਮੌਜੂਦਾ ਮੌਸਮ, ਮੀਂਹ ਦੀ ਸੰਭਾਵਨਾ, ਤਾਪਮਾਨ, ਹਵਾ ਦੀ ਗਤੀ ਅਤੇ ਯਾਤਰਾ ਜਾਂ ਖੇਤੀਬਾੜੀ ਸਲਾਹ ਪੁੱਛ ਸਕਦੇ ਹੋ।"
+                return "ਸਤਿ ਸ਼੍ਰੀ ਅਕਾਲ! 👋 ਮੈਂ WeatherGPT ਹਾਂ। ਮੈਂ ਮੌਸਮ, ਮੀਂਹ, ਤਾਪਮਾਨ ਅਤੇ ਭਵਿੱਖਬਾਣੀ ਵਿੱਚ ਤੁਹਾਡੀ ਮਦਦ ਕਰ ਸਕਦਾ ਹਾਂ। ਤੁਸੀਂ ਕਿਸ ਸ਼ਹਿਰ ਦਾ ਮੌਸਮ ਦੇਖਣਾ ਚਾਹੁੰਦੇ ਹੋ?"
+            else:
+                return "Namaste & Welcome! 👋 I am WeatherGPT, your AI Weather Intelligence Assistant. What weather information would you like to check today?"
+
+        elif intent in ["non_weather_meta", "capability"]:
+            if lang == "hi":
+                return "Main current weather, forecasts, rain probability, temperature, humidity, wind, alerts aur weather-based advice de sakta hoon — text ya voice se."
+            elif lang == "pa":
+                return "ਮੈਂ ਮੌਜੂਦਾ ਮੌਸਮ, ਭਵਿੱਖਬਾਣੀ, ਮੀਂਹ ਦੀ ਸੰਭਾਵਨਾ, ਤਾਪਮਾਨ, ਹਵਾ ਦੀ ਗਤੀ ਅਤੇ ਮੌਸਮ ਸਲਾਹ ਦੇ ਸਕਦਾ ਹਾਂ — ਟੈਕਸਟ ਜਾਂ ਆਵਾਜ਼ ਰਾਹੀਂ।"
             else:
                 return "I am WeatherGPT — an AI Weather Intelligence & Decision Assistant. You can ask me about current weather, rain probability, 7-day forecasts, temperature, wind speed, UV index, humidity, or travel and agricultural advisory for any location."
 
-        elif intent == "non_weather_thanks":
+        elif intent in ["non_weather_thanks", "thanks"]:
             if lang == "hi":
                 return "आपका स्वागत है! अगर आपको किसी और स्थान का मौसम चेक करना हो, तो बेझिझक पूछें।"
             elif lang == "pa":
                 return "ਤੁਹਾਡਾ ਸੁਆਗਤ ਹੈ! ਜੇਕਰ ਤੁਹਾਨੂੰ ਕਿਸੇ ਹੋਰ ਜਗ੍ਹਾ ਦਾ ਮੌਸਮ ਦੇਖਣਾ ਹੋਵੇ ਤਾਂ ਜ਼ਰੂਰ ਦੱਸੋ।"
             else:
                 return "You're very welcome! Let me know whenever you need weather updates or forecast information."
+
+        elif intent in ["non_weather_conversation", "social"]:
+            if "theek ho" in q_low or "theek" in q_low:
+                if lang == "pa":
+                    return "ਹਾਂਜੀ 😄 ਮੈਂ ਬਿਲਕੁਲ ਠੀਕ ਹਾਂ! ਦੱਸੋ, ਕਿਸ ਸ਼ਹਿਰ ਦਾ ਮੌਸਮ ਦੇਖਣਾ ਹੈ?"
+                elif lang == "hi":
+                    return "Haan bhai 😄 main bilkul theek hoon! Batao, kis city ka weather dekhna hai?"
+                else:
+                    return "I'm doing totally fine! 😄 What location's weather would you like to check?"
+
+            if "bhai" in q_low:
+                if lang == "pa":
+                    return "ਮੈਂ ਵਧੀਆ ਹਾਂ ਵੀਰੇ 😄! ਦੱਸੋ, ਕਿਸ ਸ਼ਹਿਰ ਦਾ ਮੌਸਮ ਦੇਖਣਾ ਹੈ?"
+                elif lang == "hi":
+                    return "Main badhiya hoon bhai 😄 Aap batao, kis city ka weather check karna hai?"
+                else:
+                    return "Doing great, my friend! 😄 Which city's weather would you like to check?"
+
+            if lang == "hi":
+                return "Main badhiya hoon 😄 Aap batao, kis city ka weather check karna hai?"
+            elif lang == "pa":
+                return "ਮੈਂ ਵਧੀਆ ਹਾਂ 😄! ਦੱਸੋ, ਕਿਸ ਸ਼ਹਿਰ ਦਾ ਮੌਸਮ ਦੇਖਣਾ ਹੈ?"
+            else:
+                return "I'm doing great! 😊 What location would you like me to check?"
+
+        elif intent in ["unclear_gibberish", "unclear"]:
+            if lang == "hi":
+                return "Sorry, main ye samajh nahi paaya 😅. Aap weather ke baare mein kya jaana chahte hain? Jaise, 'Kal Delhi mein baarish hogi?'"
+            elif lang == "pa":
+                return "ਮੈਂ ਇਹ ਸਮਝ ਨਹੀਂ ਸਕਿਆ 😅। ਕੀ ਤੁਸੀਂ ਕਿਸੇ ਸ਼ਹਿਰ ਦਾ ਮੌਸਮ ਪੁੱਛਣਾ ਚਾਹੁੰਦੇ ਹੋ? ਜਿਵੇਂ, 'ਕੱਲ੍ਹ ਦਿੱਲੀ ਵਿੱਚ ਮੀਂਹ ਪਵੇਗਾ?'"
+            else:
+                return "Sorry, I didn't quite understand that 😅. What weather information would you like to check? For example: 'Will it rain in Delhi tomorrow?'"
 
         return "How can I help you with weather information today?"
 
@@ -66,8 +100,8 @@ class GroundedLLMEngine:
         intent = parsed_nlp.get("extracted_intent", "forecast")
 
         # Handle non-weather intent
-        if intent in ["non_weather_greeting", "non_weather_meta", "non_weather_thanks"]:
-            return self.generate_non_weather_answer(intent, lang)
+        if intent in ["non_weather_greeting", "non_weather_meta", "non_weather_thanks", "non_weather_conversation", "unclear_gibberish"]:
+            return self.generate_non_weather_answer(intent, lang, query=query)
 
         # Handle missing location
         if parsed_nlp.get("missing_location", False):
@@ -250,6 +284,12 @@ class GroundedLLMEngine:
                 else:
                     ans = prefix + f"हाँ! {date_str} **{loc}** में बाहरी कार्यक्रमों (outdoor events) के लिए मौसम अनुकूल रहेगा। बारिश की संभावना काफी कम (**{rain_prob}%**) है और तापमान लगभग **{temp_max}°C** रहेगा ({hi_cond})।"
 
+            elif intent == "agriculture":
+                if rain_prob > 40 or wind_spd > 25:
+                    ans = prefix + f"{date_str} **{loc}** में छिड़काव (spraying/farming) की सलाह नहीं दी जाती है क्योंकि बारिश की संभावना **{rain_prob}%** और हवा की गति **{wind_spd} किमी/घंटा** है।"
+                else:
+                    ans = prefix + f"हाँ, {date_str} **{loc}** में फसलों पर कीटनाशक/उर्वरक छिड़काव के लिए मौसम अनुकूल है। बारिश की संभावना केवल **{rain_prob}%** और हवा शांत ({wind_spd} किमी/घंटा) है।"
+
             else:
                 ans = prefix + f"{date_str} **{loc}** में बारिश की संभावना **{rain_prob}%** है। अधिकतम तापमान **{temp_max}°C** और न्यूनतम **{temp_min}°C** रहने का अनुमान है ({hi_cond})।"
 
@@ -272,6 +312,12 @@ class GroundedLLMEngine:
                     ans = prefix + f"{date_str} **{loc}** ਵਿੱਚ ਬਾਹਰੀ ਸਮਾਗਮਾਂ ਲਈ ਮੀਂਹ ਪੈਣ ਦੀ ਸੰਭਾਵਨਾ (**{rain_prob}%**) ਹੈ। ਵੱਧ ਤੋਂ ਵੱਧ ਤਾਪਮਾਨ **{temp_max}°C** ਰਹੇਗਾ।"
                 else:
                     ans = prefix + f"ਹਾਂ! {date_str} **{loc}** ਵਿੱਚ ਬਾਹਰੀ ਪ੍ਰੋਗਰਾਮਾਂ (outdoor events) ਲਈ ਮੌਸਮ ਵਧੀਆ ਰਹੇਗਾ। ਮੀਂਹ ਦੀ ਸੰਭਾਵਨਾ ਸਿਰਫ਼ **{rain_prob}%** ਹੈ ਅਤੇ ਤਾਪਮਾਨ **{temp_max}°C** ਰਹੇਗਾ।"
+
+            elif intent == "agriculture":
+                if rain_prob > 40 or wind_spd > 25:
+                    ans = prefix + f"{date_str} **{loc}** ਵਿੱਚ ਸਪਰੇਅ ਕਰਨ ਲਈ ਮੌਸਮ ਅਨੁਕੂਲ ਨਹੀਂ ਹੈ (ਮੀਂਹ: {rain_prob}%, ਹਵਾ: {wind_spd} ਕਿਮੀ/ਘੰਟਾ)।"
+                else:
+                    ans = prefix + f"ਹਾਂ, {date_str} **{loc}** ਵਿੱਚ ਫ਼ਸਲਾਂ 'ਤੇ ਸਪਰੇਅ ਕਰਨ ਲਈ ਮੌਸਮ ਵਧੀਆ ਹੈ। ਮੀਂਹ ਦੀ ਸੰਭਾਵਨਾ ਸਿਰਫ਼ {rain_prob}% ਹੈ।"
 
             elif intent == "temperature":
                 ans = prefix + f"{date_str} **{loc}** ਵਿੱਚ ਵੱਧ ਤੋਂ ਵੱਧ ਤਾਪਮਾਨ **{temp_max}°C** ਅਤੇ ਘੱਟ ਤੋਂ ਘੱਟ ਤਾਪਮਾਨ **{temp_min}°C** ਰਹਿਣ ਦਾ ਅਨੁਮਾਨ ਹੈ।"
@@ -302,6 +348,12 @@ class GroundedLLMEngine:
                     ans = prefix + f"Outdoor activities in **{loc}** {date_str} may be affected by rain. Rain probability is **{rain_prob}%** ({precip_mm}mm precipitation expected) with maximum temperature around **{temp_max}°C**."
                 else:
                     ans = prefix + f"Yes! Weather conditions in **{loc}** {date_str} look good for outdoor events. Rain probability is low (**{rain_prob}%**), with expected max temperature around **{temp_max}°C** and **{cond}** conditions."
+
+            elif intent == "agriculture":
+                if rain_prob > 40 or wind_spd > 25:
+                    ans = prefix + f"Farming and spraying operations in **{loc}** {date_str} are not recommended. Rain probability is **{rain_prob}%** and wind speed is **{wind_spd} km/h**."
+                else:
+                    ans = prefix + f"Yes, weather conditions in **{loc}** {date_str} are suitable for farming and spraying. Rain probability is low (**{rain_prob}%**) with calm winds at **{wind_spd} km/h** ({cond})."
 
             elif intent == "temperature":
                 ans = prefix + f"In **{loc}** {date_str}, expected maximum temperature is **{temp_max}°C** and minimum temperature is **{temp_min}°C** ({cond})."

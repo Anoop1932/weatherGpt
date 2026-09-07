@@ -109,6 +109,7 @@ class WeatherQueryResponse(BaseModel):
     extracted_intent: str
     resolved_location: str
     resolved_date: str
+    response_type: str = Field("weather", description="weather | conversation | clarification | error")
     weather_facts: Optional[Dict[str, Any]] = None
     risk_evaluation: Optional[RiskEvaluation] = None
     grounded_answer: str

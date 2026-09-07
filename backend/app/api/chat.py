@@ -21,13 +21,14 @@ async def process_weather_query(
     db: AsyncSession = Depends(get_db)
 ):
     try:
-        # Step 1: NLP Language, Intent, Entity, Date & Session Context Parsing
+        # Step 1: NLP Language, Intent, Category, Entity, Date & Session Context Parsing
         parsed_nlp = nlp_parser.parse(
             query=req.query,
             last_location=req.last_location,
             last_date=req.last_date
         )
         
+        intent_cat = parsed_nlp.get("intent_category", "WEATHER_QUERY")
         intent = parsed_nlp["extracted_intent"]
         lang = parsed_nlp["detected_language"]
         loc_name = parsed_nlp["resolved_location"]
@@ -38,33 +39,40 @@ async def process_weather_query(
         extracted_state = parsed_nlp.get("extracted_state")
 
         logger.info(
-            f"[NLP DEBUG] RAW QUERY: '{req.query}' | INTENT: {intent} | LANG: {lang} | "
+            f"[NLP DEBUG] RAW QUERY: '{req.query}' | INTENT_CAT: {intent_cat} | INTENT: {intent} | LANG: {lang} | "
             f"EXTRACTED LOC: '{loc_name}' | EXPLICIT LOC: {has_explicit_loc} | STATE: {extracted_state} | "
             f"DATE OFFSET: {offset} ({parsed_nlp.get('date_label')})"
         )
 
-        # Step 2: Route Non-Weather Queries directly (Greetings, Meta, Thanks)
-        if intent in ["non_weather_greeting", "non_weather_meta", "non_weather_thanks"]:
+        # Step 2: Hard Weather Gate - Route Non-Weather Queries & Gibberish directly without Geocoding or Weather API
+        if intent_cat in ["GREETING", "NON_WEATHER_CONVERSATION", "CAPABILITY", "THANKS", "UNCLEAR"]:
+            logger.info(f"[GATE DEBUG] HARD WEATHER GATE: NON-WEATHER QUERY ({intent_cat}). GEOCODING: NO | WEATHER API: NO")
             grounded_text = grounded_llm_engine.generate_grounded_answer(
                 query=req.query,
                 parsed_nlp=parsed_nlp,
                 weather_facts={},
                 risk_eval=None
             )
+            resp_type = "clarification" if intent_cat == "UNCLEAR" else "conversation"
             return WeatherQueryResponse(
                 raw_query=req.query,
                 detected_language=lang,
                 extracted_intent=intent,
                 resolved_location="",
                 resolved_date="",
+                response_type=resp_type,
+                weather_facts=None,
+                risk_evaluation=None,
                 grounded_answer=grounded_text,
                 source="WeatherGPT Assistant",
                 confidence="HIGH",
-                is_non_weather=True
+                is_non_weather=True,
+                is_missing_location=False
             )
 
-        # Step 3: Handle Unspecified / Missing Location (Ask Clarification Question)
-        if is_missing_loc and not req.location:
+        # Step 3: Handle Unspecified / Missing Location for Weather Query (Ask Clarification Question without Geocoding)
+        if is_missing_loc or not loc_name:
+            logger.info(f"[GATE DEBUG] HARD WEATHER GATE: MISSING LOCATION FOR WEATHER QUERY. GEOCODING: NO | WEATHER API: NO")
             grounded_text = grounded_llm_engine.generate_missing_location_answer(lang)
             return WeatherQueryResponse(
                 raw_query=req.query,
@@ -72,30 +80,24 @@ async def process_weather_query(
                 extracted_intent=intent,
                 resolved_location="",
                 resolved_date="",
+                response_type="clarification",
+                weather_facts=None,
+                risk_evaluation=None,
                 grounded_answer=grounded_text,
                 source="WeatherGPT Assistant",
                 confidence="HIGH",
+                is_non_weather=False,
                 is_missing_location=True
             )
 
-        # If location was not in query string but UI location is available as fallback
-        if not loc_name and req.location:
-            loc_name = req.location
-
-        # Step 4: Robust Geocoding with State & Country Context
+        # Step 4: Geocoding (ONLY FOR VALID WEATHER QUERIES WITH EXPLICIT OR FOLLOWUP LOCATION)
         lat, lon = None, None
-        if loc_name:
-            logger.info(f"[GEO DEBUG] Geocoding query: '{loc_name}' with state_hint: '{extracted_state}'")
-            geo = await geocode_location(loc_name, state_hint=extracted_state)
-            if geo:
-                lat, lon = geo["latitude"], geo["longitude"]
-                loc_name = geo.get("display_name") or geo.get("name") or loc_name
-                logger.info(f"[GEO DEBUG] Geocoding resolved: '{loc_name}' ({lat}, {lon})")
-            elif req.latitude is not None and req.longitude is not None:
-                lat, lon = req.latitude, req.longitude
-        elif req.latitude is not None and req.longitude is not None:
-            lat, lon = req.latitude, req.longitude
-            loc_name = req.location or "Current Location"
+        logger.info(f"[GEO DEBUG] GEOCODING CALLED: YES | Query: '{loc_name}' with state_hint: '{extracted_state}'")
+        geo = await geocode_location(loc_name, state_hint=extracted_state)
+        if geo:
+            lat, lon = geo["latitude"], geo["longitude"]
+            loc_name = geo.get("display_name") or geo.get("name") or loc_name
+            logger.info(f"[GEO DEBUG] Geocoding resolved: '{loc_name}' ({lat}, {lon})")
 
         # If geocoding failed and no coordinates exist
         if lat is None or lon is None:
@@ -107,15 +109,20 @@ async def process_weather_query(
                 extracted_intent=intent,
                 resolved_location="",
                 resolved_date="",
+                response_type="clarification",
+                weather_facts=None,
+                risk_evaluation=None,
                 grounded_answer=grounded_text,
                 source="WeatherGPT Assistant",
                 confidence="HIGH",
+                is_non_weather=False,
                 is_missing_location=True
             )
 
         parsed_nlp["resolved_location"] = loc_name
 
         # Step 5: Fetch Grounded Weather Evidence from Weather Orchestrator for Target Location & Date
+        logger.info(f"[WEATHER API DEBUG] WEATHER API CALLED: YES | Location: '{loc_name}' ({lat}, {lon})")
         forecast = await weather_orchestrator.get_forecast(lat, lon, loc_name, days=max(offset + 2, 7))
         warnings = await weather_orchestrator.get_warnings(lat, lon, loc_name)
 
@@ -181,6 +188,7 @@ async def process_weather_query(
             extracted_intent=intent,
             resolved_location=loc_name,
             resolved_date=target_day.get("date", parsed_nlp.get("date_label", "Today")),
+            response_type="weather",
             weather_facts=weather_facts,
             risk_evaluation=risk_eval,
             grounded_answer=grounded_text,

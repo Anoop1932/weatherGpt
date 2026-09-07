@@ -162,8 +162,10 @@ export const WeatherProvider = ({ children }) => {
       });
       const data = resp.data;
 
-      // Update conversation session context memory
-      if (data.resolved_location) {
+      const isWeatherResp = data.response_type === 'weather' && !data.is_non_weather && !data.is_missing_location;
+
+      // Update conversation session context memory ONLY if it's a valid weather response
+      if (isWeatherResp && data.resolved_location) {
         setActiveContextLocation(data.resolved_location);
         if (data.weather_facts?.latitude && data.weather_facts?.longitude && data.resolved_location.toLowerCase() !== location.toLowerCase()) {
           setLocation(data.resolved_location);
@@ -171,10 +173,10 @@ export const WeatherProvider = ({ children }) => {
           fetchWeatherData(data.resolved_location, { latitude: data.weather_facts.latitude, longitude: data.weather_facts.longitude });
         }
       }
-      if (data.resolved_date) {
+      if (isWeatherResp && data.resolved_date) {
         setActiveContextDate(data.resolved_date);
       }
-      if (data.extracted_intent) {
+      if (isWeatherResp && data.extracted_intent) {
         setActiveContextIntent(data.extracted_intent);
       }
 
@@ -182,13 +184,15 @@ export const WeatherProvider = ({ children }) => {
         sender: 'assistant',
         text: data.grounded_answer,
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        risk_level: data.risk_evaluation?.risk_level || 'LOW',
+        detected_language: data.detected_language || language,
+        response_type: data.response_type || (data.is_non_weather ? 'conversation' : data.is_missing_location ? 'clarification' : 'weather'),
+        risk_level: isWeatherResp ? (data.risk_evaluation?.risk_level || 'LOW') : null,
         confidence: data.confidence || 'HIGH',
         source: data.source,
         updated_at: data.updated_at,
-        weather_facts: data.weather_facts,
-        risk_evaluation: data.risk_evaluation,
-        is_non_weather: data.is_non_weather,
+        weather_facts: isWeatherResp ? data.weather_facts : null,
+        risk_evaluation: isWeatherResp ? data.risk_evaluation : null,
+        is_non_weather: !isWeatherResp,
         is_missing_location: data.is_missing_location
       };
       setChatMessages((prev) => [...prev, assistantMsg]);

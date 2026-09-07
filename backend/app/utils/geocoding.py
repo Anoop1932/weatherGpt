@@ -37,7 +37,16 @@ MAJOR_INDIAN_LOCATIONS = {
     "agra": {"name": "Agra", "state": "Uttar Pradesh", "country": "India", "display_name": "Agra, Uttar Pradesh, India", "latitude": 27.1767, "longitude": 78.0081},
     "gaya": {"name": "Gaya", "state": "Bihar", "country": "India", "display_name": "Gaya, Bihar, India", "latitude": 24.7914, "longitude": 85.0002},
     "muzaffarpur": {"name": "Muzaffarpur", "state": "Bihar", "country": "India", "display_name": "Muzaffarpur, Bihar, India", "latitude": 26.1209, "longitude": 85.3647},
-    "bhagalpur": {"name": "Bhagalpur", "state": "Bihar", "country": "India", "display_name": "Bhagalpur, Bihar, India", "latitude": 25.2425, "longitude": 87.0125}
+    "bhagalpur": {"name": "Bhagalpur", "state": "Bihar", "country": "India", "display_name": "Bhagalpur, Bihar, India", "latitude": 25.2425, "longitude": 87.0125},
+    "assam": {"name": "Guwahati", "state": "Assam", "country": "India", "display_name": "Assam, India", "latitude": 26.1445, "longitude": 91.7362, "is_state": True},
+    "asam": {"name": "Guwahati", "state": "Assam", "country": "India", "display_name": "Assam, India", "latitude": 26.1445, "longitude": 91.7362, "is_state": True},
+    "guwahati": {"name": "Guwahati", "state": "Assam", "country": "India", "display_name": "Guwahati, Assam, India", "latitude": 26.1445, "longitude": 91.7362},
+    "guwahati, assam": {"name": "Guwahati", "state": "Assam", "country": "India", "display_name": "Guwahati, Assam, India", "latitude": 26.1445, "longitude": 91.7362},
+    "guwahati assam": {"name": "Guwahati", "state": "Assam", "country": "India", "display_name": "Guwahati, Assam, India", "latitude": 26.1445, "longitude": 91.7362},
+    "guwahati, asam": {"name": "Guwahati", "state": "Assam", "country": "India", "display_name": "Guwahati, Assam, India", "latitude": 26.1445, "longitude": 91.7362},
+    "guwahati asam": {"name": "Guwahati", "state": "Assam", "country": "India", "display_name": "Guwahati, Assam, India", "latitude": 26.1445, "longitude": 91.7362},
+    "pune": {"name": "Pune", "state": "Maharashtra", "country": "India", "display_name": "Pune, Maharashtra, India", "latitude": 18.5204, "longitude": 73.8567},
+    "pune, maharashtra": {"name": "Pune", "state": "Maharashtra", "country": "India", "display_name": "Pune, Maharashtra, India", "latitude": 18.5204, "longitude": 73.8567}
 }
 
 
