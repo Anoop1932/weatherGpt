@@ -27,8 +27,15 @@ export const WeatherProvider = ({ children }) => {
   
   // Conversation session state memory
   const [activeContextLocation, setActiveContextLocation] = useState('Amritsar');
+  const [activeContextLocations, setActiveContextLocations] = useState(['Amritsar']);
   const [activeContextDate, setActiveContextDate] = useState(null);
+  const [activeContextTimeRange, setActiveContextTimeRange] = useState(null);
   const [activeContextIntent, setActiveContextIntent] = useState(null);
+  const [activeContextActivity, setActiveContextActivity] = useState(null);
+  const [activeContextMetric, setActiveContextMetric] = useState(null);
+  const [activeContextOrigin, setActiveContextOrigin] = useState(null);
+  const [activeContextDestination, setActiveContextDestination] = useState(null);
+  const [activeContextResponseType, setActiveContextResponseType] = useState(null);
 
   const [recentLocs, setRecentLocs] = useState(getRecentLocations());
   const [chatMessages, setChatMessages] = useState([
@@ -159,27 +166,49 @@ export const WeatherProvider = ({ children }) => {
         longitude: locationCoords.longitude,
         language: language,
         last_location: activeContextLocation,
+        last_locations: activeContextLocations,
         last_date: activeContextDate,
-        last_intent: activeContextIntent
+        last_time_range: activeContextTimeRange,
+        last_intent: activeContextIntent,
+        last_activity: activeContextActivity,
+        last_metric: activeContextMetric,
+        last_origin: activeContextOrigin,
+        last_destination: activeContextDestination,
+        last_response_type: activeContextResponseType
       });
       const data = resp.data;
 
-      const isWeatherResp = (data.response_type === 'weather' || data.response_type === 'activity' || data.response_type === 'comparison' || data.response_type === 'ranking') && !data.is_non_weather && !data.is_missing_location;
-
-      // Update conversation session context memory ONLY if it's a valid weather/activity response
-      if (isWeatherResp && data.resolved_location && (data.response_type === 'weather' || data.response_type === 'activity')) {
-        setActiveContextLocation(data.resolved_location);
-        if (data.weather_facts?.latitude && data.weather_facts?.longitude && data.resolved_location.toLowerCase() !== location.toLowerCase()) {
-          setLocation(data.resolved_location);
-          setLocationCoords({ latitude: data.weather_facts.latitude, longitude: data.weather_facts.longitude });
-          fetchWeatherData(data.resolved_location, { latitude: data.weather_facts.latitude, longitude: data.weather_facts.longitude });
+      // Update conversation session context memory ONLY if it's a valid domain response
+      if (data.response_type === 'conversation' || data.response_type === 'clarification') {
+        setActiveContextResponseType(data.response_type);
+      } else {
+        setActiveContextResponseType(data.response_type);
+        if (data.resolved_location) {
+          setActiveContextLocation(data.resolved_location);
+          if (data.weather_facts?.latitude && data.weather_facts?.longitude && data.resolved_location.toLowerCase() !== location.toLowerCase()) {
+            setLocation(data.resolved_location);
+            setLocationCoords({ latitude: data.weather_facts.latitude, longitude: data.weather_facts.longitude });
+            fetchWeatherData(data.resolved_location, { latitude: data.weather_facts.latitude, longitude: data.weather_facts.longitude });
+          }
         }
-      }
-      if (isWeatherResp && data.resolved_date) {
-        setActiveContextDate(data.resolved_date);
-      }
-      if (isWeatherResp && data.extracted_intent) {
-        setActiveContextIntent(data.extracted_intent);
+        if (data.resolved_locations && data.resolved_locations.length > 0) {
+          setActiveContextLocations(data.resolved_locations);
+        } else if (data.resolved_location) {
+          setActiveContextLocations([data.resolved_location]);
+        }
+        if (data.resolved_date) {
+          setActiveContextDate(data.resolved_date);
+        }
+        if (data.extracted_intent) {
+          setActiveContextIntent(data.extracted_intent);
+        }
+        if (data.extracted_activity) {
+          setActiveContextActivity(data.extracted_activity);
+        }
+        if (data.travel_data) {
+          if (data.travel_data.origin?.location) setActiveContextOrigin(data.travel_data.origin.location);
+          if (data.travel_data.destination?.location) setActiveContextDestination(data.travel_data.destination.location);
+        }
       }
 
       const hasWeatherCard = (data.response_type === 'weather' || data.response_type === 'activity') && !data.is_non_weather && !data.is_missing_location;
@@ -197,6 +226,7 @@ export const WeatherProvider = ({ children }) => {
         weather_facts: hasWeatherCard ? data.weather_facts : null,
         comparison_data: data.comparison_data || null,
         ranking_data: data.ranking_data || null,
+        travel_data: data.travel_data || null,
         risk_evaluation: hasWeatherCard ? data.risk_evaluation : null,
         is_non_weather: data.is_non_weather,
         is_missing_location: data.is_missing_location

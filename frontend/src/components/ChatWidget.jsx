@@ -275,7 +275,7 @@ export const ChatWidget = () => {
                       </div>
                     )}
 
-                    <div className="chat-message-text space-y-2">
+                    <div className="chat-message-text space-y-2" data-testid="chat-message-text">
                       {isUser ? (
                         <div>{msg.text}</div>
                       ) : (
@@ -333,6 +333,43 @@ export const ChatWidget = () => {
                               </span>
                             </div>
                           ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Travel Route Forecast Card */}
+                    {!isUser && msg.response_type === 'travel' && msg.travel_data && (
+                      <div className="travel-cards-container mt-2 pt-2 border-t border-slate-200/80 dark:border-slate-700 space-y-1.5 text-[10px]">
+                        <div className="font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider text-[9px]">
+                          Route Weather & Travel Suitability:
+                        </div>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                          {msg.travel_data.origin && (
+                            <div className="bg-white dark:bg-slate-900/60 p-2 rounded-xl border border-slate-200 dark:border-slate-700 space-y-1">
+                              <div className="font-bold text-slate-900 dark:text-white flex items-center justify-between">
+                                <span className="text-sky-600 dark:text-sky-400">Origin: {msg.travel_data.origin.location}</span>
+                                <span>{msg.travel_data.origin.temp_max_c ?? msg.travel_data.origin.temperature_c}°C</span>
+                              </div>
+                              <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400">
+                                <span>Rain: <strong className="text-slate-700 dark:text-slate-300">{msg.travel_data.origin.rain_probability}%</strong></span>
+                                <span>•</span>
+                                <span>{msg.travel_data.origin.condition_text}</span>
+                              </div>
+                            </div>
+                          )}
+                          {msg.travel_data.destination && (
+                            <div className="bg-white dark:bg-slate-900/60 p-2 rounded-xl border border-slate-200 dark:border-slate-700 space-y-1">
+                              <div className="font-bold text-slate-900 dark:text-white flex items-center justify-between">
+                                <span className="text-emerald-600 dark:text-emerald-400">Destination: {msg.travel_data.destination.location}</span>
+                                <span>{msg.travel_data.destination.temp_max_c ?? msg.travel_data.destination.temperature_c}°C</span>
+                              </div>
+                              <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400">
+                                <span>Rain: <strong className="text-slate-700 dark:text-slate-300">{msg.travel_data.destination.rain_probability}%</strong></span>
+                                <span>•</span>
+                                <span>{msg.travel_data.destination.condition_text}</span>
+                              </div>
+                            </div>
+                          )}
                         </div>
                       </div>
                     )}

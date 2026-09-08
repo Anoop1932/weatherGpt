@@ -95,6 +95,93 @@ async def process_weather_query(
                 is_missing_location=False
             )
 
+        # Step 2a: Regional Comparison Clarification ("India ke shahron ko compare karo")
+        if intent_cat == "REGIONAL_COMPARISON_CLARIFICATION":
+            logger.info("[GATE DEBUG] Regional comparison clarification query.")
+            clarification_text = grounded_llm_engine.generate_regional_comparison_clarification(lang=lang, scope=loc_name or "India")
+            return WeatherQueryResponse(
+                raw_query=req.query,
+                detected_language=lang,
+                extracted_intent="regional_comparison_clarification",
+                resolved_location="",
+                resolved_date="",
+                response_type="clarification",
+                weather_facts=None,
+                risk_evaluation=None,
+                grounded_answer=clean_svg_and_markup(clarification_text),
+                source="WeatherGPT Assistant",
+                confidence="HIGH",
+                is_non_weather=False,
+                is_missing_location=False
+            )
+
+        # Step 2ab: Agriculture Large-State Clarification ("Is farming is allowed in Maharashtra for today")
+        if intent_cat == "AGRICULTURE" and (parsed_nlp.get("is_state_query") or (extracted_state and loc_name == extracted_state)):
+            logger.info(f"[AGRICULTURE DEBUG] Agriculture query on whole state '{loc_name}'. Requesting city clarification.")
+            if lang == "hi":
+                clarify_text = f"अगर आप खेती के मौसम की suitability पूछ रहे हैं, तो {loc_name} एक बड़ा राज्य है जिसमें अलग-अलग कृषि-जलवायु क्षेत्र हैं। किसी शहर/जिले का नाम दें ताकि मैं local forecast के आधार पर सटीक सुझाव दे सकूँ।"
+            elif lang == "pa":
+                clarify_text = f"ਜੇਕਰ ਤੁਸੀਂ ਖੇਤੀ ਦੇ ਮੌਸਮ ਦੀ ਅਨੁਕੂਲਤਾ ਬਾਰੇ ਪੁੱਛ ਰਹੇ ਹੋ, ਤਾਂ {loc_name} ਇੱਕ ਵੱਡਾ ਰਾਜ ਹੈ। ਕਿਰਪਾ ਕਰਕੇ ਕਿਸੇ ਸ਼ਹਿਰ ਜਾਂ ਜ਼ਿਲ੍ਹੇ ਦਾ ਨਾਮ ਦੱਸੋ ਤਾਂ ਜੋ ਸਥਾਨਕ ਪੂਰਵ-ਅਨੁਮਾਨ ਅਨੁਸਾਰ ਦੱਸ ਸਕਾਂ।"
+            else:
+                clarify_text = f"If you are asking about agricultural weather suitability, {loc_name} is a large state with diverse climatic zones. Please specify your city or district so I can provide a local, accurate forecast."
+            return WeatherQueryResponse(
+                raw_query=req.query,
+                detected_language=lang,
+                extracted_intent="agriculture_clarification",
+                resolved_location=loc_name,
+                resolved_date="",
+                response_type="clarification",
+                weather_facts=None,
+                risk_evaluation=None,
+                grounded_answer=clean_svg_and_markup(clarify_text),
+                source="WeatherGPT Assistant",
+                confidence="HIGH",
+                is_non_weather=False,
+                is_missing_location=True
+            )
+
+        # Step 2aa: Travel Route Check ("Delhi se Mumbai bike par travel kar sakta hun aaj?")
+        if intent_cat == "TRAVEL" and parsed_nlp.get("travel_origin") and parsed_nlp.get("travel_destination"):
+            orig_name = parsed_nlp["travel_origin"]
+            dest_name = parsed_nlp["travel_destination"]
+            logger.info(f"[TRAVEL DEBUG] Travel route query from '{orig_name}' to '{dest_name}'")
+            geo_orig = await geocode_location(orig_name)
+            geo_dest = await geocode_location(dest_name)
+            if geo_orig and geo_dest:
+                fc_orig, fc_dest = await asyncio.gather(
+                    weather_orchestrator.get_forecast(geo_orig["latitude"], geo_orig["longitude"], geo_orig.get("display_name", orig_name), days=3),
+                    weather_orchestrator.get_forecast(geo_dest["latitude"], geo_dest["longitude"], geo_dest.get("display_name", dest_name), days=3)
+                )
+                day_orig = fc_orig.get("daily", [{}])[0].copy() if fc_orig.get("daily") else {}
+                day_dest = fc_dest.get("daily", [{}])[0].copy() if fc_dest.get("daily") else {}
+                day_orig["location"] = geo_orig.get("display_name", orig_name)
+                day_dest["location"] = geo_dest.get("display_name", dest_name)
+                
+                travel_text = grounded_llm_engine.generate_travel_answer(
+                    lang=lang,
+                    origin=geo_orig.get("display_name", orig_name),
+                    destination=geo_dest.get("display_name", dest_name),
+                    orig_facts=day_orig,
+                    dest_facts=day_dest,
+                    query=req.query
+                )
+                return WeatherQueryResponse(
+                    raw_query=req.query,
+                    detected_language=lang,
+                    extracted_intent=intent,
+                    resolved_location=f"{geo_orig.get('display_name', orig_name)} to {geo_dest.get('display_name', dest_name)}",
+                    resolved_date=day_orig.get("date", "Today"),
+                    response_type="travel",
+                    weather_facts=day_orig,
+                    travel_data={"origin": day_orig, "destination": day_dest},
+                    risk_evaluation=None,
+                    grounded_answer=clean_svg_and_markup(travel_text),
+                    source="Open-Meteo Meteorological Service",
+                    confidence="HIGH",
+                    is_non_weather=False,
+                    is_missing_location=False
+                )
+
         # Step 2b: Multi-Location Comparison Check ("Delhi aur Mumbai ka weather compare karo", "Amritsar aur London Mein tapman Kitna kitna hai compare karo")
         if intent_cat == "COMPARISON" and parsed_nlp.get("comparison_locations") and len(parsed_nlp["comparison_locations"]) >= 2:
             loc1, loc2 = parsed_nlp["comparison_locations"][0], parsed_nlp["comparison_locations"][1]
@@ -183,16 +270,105 @@ async def process_weather_query(
                 is_missing_location=False
             )
 
+        # Step 2d: Contradiction / Discrepancy Challenge ("tumne pahle 10% kaha tha ab 100% bol rahe ho")
+        if intent_cat == "CONTRADICTION_CHALLENGE":
+            target_loc = loc_name or req.last_location or "Mumbai"
+            geo = await geocode_location(target_loc, state_hint=extracted_state)
+            if geo:
+                c_lat, c_lon = geo["latitude"], geo["longitude"]
+                canonical_facts = await weather_orchestrator.get_unified_weather_facts(
+                    lat=c_lat,
+                    lon=c_lon,
+                    location_name=geo.get("display_name", target_loc),
+                    date_offset=0,
+                    is_current=True
+                )
+                contra_text = grounded_llm_engine.generate_contradiction_answer(
+                    lang=lang,
+                    loc=geo.get("display_name", target_loc),
+                    weather_facts=canonical_facts,
+                    query=req.query
+                )
+                return WeatherQueryResponse(
+                    raw_query=req.query,
+                    detected_language=lang,
+                    extracted_intent="contradiction_challenge",
+                    resolved_location=geo.get("display_name", target_loc),
+                    resolved_date="Today",
+                    response_type="weather",
+                    weather_facts=canonical_facts,
+                    risk_evaluation=None,
+                    grounded_answer=clean_svg_and_markup(contra_text),
+                    source=canonical_facts.get("source", "Open-Meteo Meteorological Service"),
+                    confidence="HIGH",
+                    is_non_weather=False,
+                    is_missing_location=False
+                )
+
+        # Step 2e: Peak Forecast Day for a single city ("Amritsar mein kaun se din sabse zyada baarish hogi")
+        if intent_cat == "FORECAST_PEAK_DAY":
+            target_loc = loc_name or req.last_location
+            if not target_loc:
+                is_missing_loc = True
+            else:
+                geo = await geocode_location(target_loc, state_hint=extracted_state)
+                if geo:
+                    p_lat, p_lon = geo["latitude"], geo["longitude"]
+                    bundle = await weather_orchestrator.get_unified_weather_bundle(p_lat, p_lon, geo.get("display_name", target_loc))
+                    daily_list = bundle.get("forecast", {}).get("daily", [])
+                    peak_text = grounded_llm_engine.generate_peak_forecast_day_answer(
+                        lang=lang,
+                        loc=geo.get("display_name", target_loc),
+                        daily_list=daily_list,
+                        query=req.query
+                    )
+                    top_day = sorted(
+                        daily_list,
+                        key=lambda d: (float(d.get("precipitation_mm", 0.0)), float(d.get("rain_probability", 0.0))),
+                        reverse=True
+                    )[0] if daily_list else {}
+                    top_day_facts = top_day.copy()
+                    top_day_facts["location"] = geo.get("display_name", target_loc)
+                    return WeatherQueryResponse(
+                        raw_query=req.query,
+                        detected_language=lang,
+                        extracted_intent="forecast_peak_day",
+                        resolved_location=geo.get("display_name", target_loc),
+                        resolved_date=top_day.get("date", "Upcoming"),
+                        response_type="weather",
+                        weather_facts=top_day_facts,
+                        risk_evaluation=None,
+                        grounded_answer=clean_svg_and_markup(peak_text),
+                        source="Open-Meteo Meteorological Service",
+                        confidence="HIGH",
+                        is_non_weather=False,
+                        is_missing_location=False
+                    )
+
         # Step 3: Handle Unspecified / Missing Location for Weather Query (Ask Clarification Question without Geocoding)
         if is_missing_loc or not loc_name:
             logger.info(f"[GATE DEBUG] HARD WEATHER GATE: MISSING LOCATION FOR WEATHER QUERY. GEOCODING: NO | WEATHER API: NO")
             if intent in ["umbrella", "raincoat"] or "umbrella" in req.query.lower() or "amrela" in req.query.lower() or "ambrella" in req.query.lower():
                 if lang == "hi":
-                    grounded_text = "क्या आप umbrella लेकर बाहर जाने के लिए मौसम की जानकारी पूछ रहे हैं? कृपया शहर का नाम बताइए।"
+                    grounded_text = "ज़रूर, किस शहर या जगह के मौसम के आधार पर बताऊँ?"
                 elif lang == "pa":
-                    grounded_text = "ਕੀ ਤੁਸੀਂ ਛਤਰੀ ਲੈ ਕੇ ਬਾਹਰ ਜਾਣ ਲਈ ਮੌਸਮ ਬਾਰੇ ਪੁੱਛ ਰਹੇ ਹੋ? ਕਿਰਪਾ ਕਰਕੇ ਸ਼ਹਿਰ ਦਾ ਨਾਮ ਦੱਸੋ।"
+                    grounded_text = "ਜ਼ਰੂਰ, ਕਿਸ ਸ਼ਹਿਰ ਜਾਂ ਜਗ੍ਹਾ ਦੇ ਮੌਸਮ ਦੇ ਆਧਾਰ 'ਤੇ ਦੱਸਾਂ?"
                 else:
-                    grounded_text = "Are you asking whether you should carry an umbrella outdoors? Please specify the city or location you'd like to check."
+                    grounded_text = "Sure, which city or location would you like to check the weather for?"
+            elif intent in ["agriculture", "agriculture_fertilizer", "agriculture_spraying"]:
+                if lang == "hi":
+                    grounded_text = "ज़रूर, किस शहर, जिले या स्थान के खेतों के लिए मौसम की जानकारी चाहिए? कृपया स्थान का नाम बताइए।"
+                elif lang == "pa":
+                    grounded_text = "ਜ਼ਰੂਰ, ਕਿਸ ਸ਼ਹਿਰ ਜਾਂ ਜ਼ਿਲ੍ਹੇ ਦੇ ਖੇਤਾਂ ਲਈ ਮੌਸਮ ਦੀ ਜਾਣਕਾਰੀ ਚਾਹੀਦੀ ਹੈ? ਕਿਰਪਾ ਕਰਕੇ ਸਥਾਨ ਦੱਸੋ।"
+                else:
+                    grounded_text = "Sure, which city or district would you like to check agricultural conditions for?"
+            elif parsed_nlp.get("is_timing_query"):
+                if lang == "hi":
+                    grounded_text = "ज़रूर, आप किस शहर या स्थान के लिए बारिश का समय (timing) जानना चाहते हैं?"
+                elif lang == "pa":
+                    grounded_text = "ਜ਼ਰੂਰ, ਤੁਸੀਂ ਕਿਸ ਸ਼ਹਿਰ ਲਈ ਮੀਂਹ ਦਾ ਸਮਾਂ ਜਾਣਨਾ ਚਾਹੁੰਦੇ ਹੋ?"
+                else:
+                    grounded_text = "Sure, which city or location would you like to check the rain timing for?"
             else:
                 grounded_text = grounded_llm_engine.generate_missing_location_answer(lang)
             return WeatherQueryResponse(
@@ -300,59 +476,18 @@ async def process_weather_query(
 
         # Step 5: Fetch Grounded Weather Evidence from Weather Orchestrator for Target Location & Date
         logger.info(f"[WEATHER API DEBUG] WEATHER API CALLED: YES | Location: '{loc_name}' ({lat}, {lon})")
-        forecast = await weather_orchestrator.get_forecast(lat, lon, loc_name, days=max(offset + 2, 7) if offset >= 0 else 7)
-        warnings = await weather_orchestrator.get_warnings(lat, lon, loc_name)
-
-        # If current temperature or real-time abhi/vartman requested, fetch live current weather feed
-        current_data = None
-        if parsed_nlp.get("is_current") or intent_cat == "WEATHER_CURRENT" or offset == 0:
-            try:
-                current_data = await weather_orchestrator.get_current_weather(lat, lon, loc_name)
-            except Exception as ce:
-                logger.warning(f"Failed to fetch live current weather: {ce}")
-
-        daily_list = forecast.get("daily", [])
-        day_idx = max(0, min(offset, len(daily_list) - 1)) if offset >= 0 else 0
-        target_day = daily_list[day_idx] if daily_list else {}
-
         is_curr_query = bool(
             parsed_nlp.get("is_current") or 
             (offset == 0 and any(k in req.query.lower() for k in ["now", "abhi", "is rain", "right now", "happen", "chal raha"]))
         )
-
-        real_curr_temp = current_data.get("temperature_c") if (current_data and offset == 0) else target_day.get("temp_max_c", 30.0)
-        real_wind = current_data.get("wind_speed_kmh") if (current_data and offset == 0) else target_day.get("max_wind_kmh", 12.0)
-        real_humidity = current_data.get("humidity", 60.0) if (current_data and offset == 0) else 60.0
-        curr_condition = current_data.get("condition_text") or target_day.get("condition_text", "Partly Cloudy") if current_data else target_day.get("condition_text", "Partly Cloudy")
-        curr_weather_code = current_data.get("weather_code") if (current_data and current_data.get("weather_code") is not None) else target_day.get("weather_code", 0)
-        curr_precip = current_data.get("precipitation_mm", 0.0) if current_data else target_day.get("precipitation_mm", 0.0)
-        curr_rain_prob = current_data.get("rain_probability", (80.0 if curr_precip > 0.1 else 10.0)) if current_data else target_day.get("rain_probability", 20.0)
-
-        weather_facts = {
-            "location": loc_name,
-            "latitude": lat,
-            "longitude": lon,
-            "date": "Today (Current Observation)" if is_curr_query else target_day.get("date", parsed_nlp.get("date_label", "Today")),
-            "is_current_observation": is_curr_query,
-            "rain_probability": curr_rain_prob if is_curr_query else target_day.get("rain_probability", 20.0),
-            "precipitation_mm": curr_precip if is_curr_query else target_day.get("precipitation_mm", 0.0),
-            "temp_max_c": target_day.get("temp_max_c", 30.0),
-            "temp_min_c": target_day.get("temp_min_c", 22.0),
-            "temperature_c": real_curr_temp,
-            "feels_like_c": current_data.get("feels_like_c", real_curr_temp) if current_data else real_curr_temp,
-            "max_wind_kmh": real_wind,
-            "wind_speed_kmh": real_wind,
-            "humidity": real_humidity,
-            "condition_text": curr_condition if is_curr_query else target_day.get("condition_text", "Partly Cloudy"),
-            "weather_code": curr_weather_code if is_curr_query else target_day.get("weather_code", 0),
-            "uv_index": target_day.get("uv_index_max", 5.0),
-            "source": forecast.get("source", "Open-Meteo Meteorological Service"),
-            "updated_at": forecast.get("updated_at", "Just now"),
-            "confidence": forecast.get("confidence", "HIGH"),
-            "disagreement_note": forecast.get("disagreement_note"),
-            "hourly": forecast.get("hourly", []),
-            "daily": forecast.get("daily", [])
-        }
+        weather_facts = await weather_orchestrator.get_unified_weather_facts(
+            lat=lat,
+            lon=lon,
+            location_name=loc_name,
+            date_offset=offset,
+            is_current=is_curr_query
+        )
+        warnings = await weather_orchestrator.get_warnings(lat, lon, loc_name)
 
         # Step 6: Run Deterministic Risk Engine
         context_type = req.context_type if req.context_type != "general" else intent
@@ -363,12 +498,18 @@ async def process_weather_query(
         )
 
         # Step 7: Grounded Response Generation
-        grounded_text = grounded_llm_engine.generate_grounded_answer(
-            query=req.query,
-            parsed_nlp=parsed_nlp,
-            weather_facts=weather_facts,
-            risk_eval=risk_eval
-        )
+        if parsed_nlp.get("is_timing_query"):
+            if parsed_nlp.get("timing_type") == "outdoor":
+                grounded_text = grounded_llm_engine.generate_outdoor_timing_answer(lang=lang, loc=loc_name, weather_facts=weather_facts)
+            else:
+                grounded_text = grounded_llm_engine.generate_rain_timing_answer(lang=lang, loc=loc_name, weather_facts=weather_facts)
+        else:
+            grounded_text = grounded_llm_engine.generate_grounded_answer(
+                query=req.query,
+                parsed_nlp=parsed_nlp,
+                weather_facts=weather_facts,
+                risk_eval=risk_eval
+            )
         grounded_text = clean_svg_and_markup(grounded_text)
 
         # Step 8: Log Query to DB asynchronously
@@ -378,10 +519,10 @@ async def process_weather_query(
                 detected_language=lang,
                 extracted_intent=intent,
                 resolved_location=loc_name,
-                resolved_date=target_day.get("date", ""),
+                resolved_date=weather_facts.get("date", parsed_nlp.get("date_label", "Today")),
                 risk_level=risk_eval.risk_level if risk_eval else "LOW",
                 grounded_response=grounded_text,
-                confidence=forecast.get("confidence", "HIGH")
+                confidence=weather_facts.get("confidence", "HIGH")
             )
             db.add(db_query)
             await db.commit()
@@ -395,15 +536,15 @@ async def process_weather_query(
             detected_language=lang,
             extracted_intent=intent,
             resolved_location=loc_name,
-            resolved_date=target_day.get("date", parsed_nlp.get("date_label", "Today")),
+            resolved_date=weather_facts.get("date", parsed_nlp.get("date_label", "Today")),
             response_type=resp_type,
             weather_facts=weather_facts,
             risk_evaluation=risk_eval,
             grounded_answer=grounded_text,
-            source=forecast.get("source", "Open-Meteo"),
-            updated_at=forecast.get("updated_at", "Just now"),
-            confidence=forecast.get("confidence", "HIGH"),
-            disagreement_details=forecast.get("disagreement_note"),
+            source=weather_facts.get("source", "Open-Meteo"),
+            updated_at=weather_facts.get("updated_at", "Just now"),
+            confidence=weather_facts.get("confidence", "HIGH"),
+            disagreement_details=weather_facts.get("disagreement_note"),
             is_non_weather=False,
             is_missing_location=False,
             is_state_query=is_state_query

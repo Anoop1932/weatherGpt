@@ -180,6 +180,16 @@ export const cleanTextForSpeech = (text, lang) => {
   content = content.replace(/<svg[\s\S]*?<\/svg>/gi, '');
   content = content.replace(/<[^>]+>/g, '');
   content = content.replace(/\b(?:svg|SVG)\b/g, '');
+  content = content.replace(/svg[A-Za-z0-9_\-\s:]+svg/gi, '');
+
+  // Strip UI badge tokens (e.g. LOW RISK, MODERATE RISK, HIGH RISK)
+  content = content.replace(/\b(?:LOW|MODERATE|HIGH|SEVERE)\s+RISK\b/gi, '');
+
+  // Expand UI prefixes (Max:, Min:, Cond:) to clean spoken words
+  content = content
+    .replace(/\bMax:\s*/gi, 'Maximum ')
+    .replace(/\bMin:\s*/gi, 'Minimum ')
+    .replace(/\bCond:\s*/gi, 'Condition: ');
 
   // 5. Strip emojis and emoticons completely
   content = stripEmojis(content);
@@ -315,8 +325,9 @@ export const speakText = (text, languageHint = 'en', onStart, onEnd) => {
   };
   const targetLocale = localeMap[detectedLang] || 'en-IN';
 
+  let hasAttemptedFallback = false;
+
   const doSpeak = () => {
-    // Re-cancel before starting to ensure clean state
     window.speechSynthesis.cancel();
 
     const selectedVoice = getBestVoice(detectedLang);
@@ -332,8 +343,44 @@ export const speakText = (text, languageHint = 'en', onStart, onEnd) => {
 
     if (onStart) utterance.onstart = onStart;
     if (onEnd) utterance.onend = onEnd;
+
     utterance.onerror = (e) => {
-      console.warn("[WeatherGPT TTS Error]:", e);
+      // Normal speech interruption or cancellation is expected when users switch queries or stop speech
+      if (e.error === 'canceled' || e.error === 'interrupted') {
+        console.debug("[WeatherGPT TTS] Speech canceled or interrupted normally.");
+        if (onEnd) onEnd();
+        return;
+      }
+
+      console.warn("[WeatherGPT TTS Error]:", {
+        name: e.name || 'SpeechSynthesisErrorEvent',
+        error: e.error,
+        message: e.message || 'Speech engine error',
+        text: utterance.text,
+        lang: utterance.lang,
+        selectedVoiceName: utterance.voice ? utterance.voice.name : 'None',
+        selectedVoiceLang: utterance.voice ? utterance.voice.lang : 'None'
+      });
+
+      // Attempt exactly one safe fallback voice without recursive looping
+      if (!hasAttemptedFallback) {
+        hasAttemptedFallback = true;
+        const fallbackVoice = getAvailableVoices().find(v => v.lang.startsWith('en')) || null;
+        if (fallbackVoice && fallbackVoice !== utterance.voice) {
+          try {
+            const fallbackUtterance = new SpeechSynthesisUtterance(cleanText);
+            fallbackUtterance.voice = fallbackVoice;
+            fallbackUtterance.lang = fallbackVoice.lang;
+            fallbackUtterance.onerror = () => { if (onEnd) onEnd(); };
+            if (onEnd) fallbackUtterance.onend = onEnd;
+            window.speechSynthesis.speak(fallbackUtterance);
+            return;
+          } catch (retryErr) {
+            console.debug("[WeatherGPT TTS] Fallback speech error:", retryErr);
+          }
+        }
+      }
+
       if (onEnd) onEnd();
     };
 
@@ -345,7 +392,12 @@ export const speakText = (text, languageHint = 'en', onStart, onEnd) => {
       cleaned_speech_text: cleanText
     });
 
-    window.speechSynthesis.speak(utterance);
+    try {
+      window.speechSynthesis.speak(utterance);
+    } catch (speakErr) {
+      console.warn("[WeatherGPT TTS] speak() call failed:", speakErr);
+      if (onEnd) onEnd();
+    }
   };
 
   // Check if voices are loaded or need to wait for voiceschanged

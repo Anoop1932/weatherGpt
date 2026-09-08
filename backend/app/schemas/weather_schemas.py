@@ -90,9 +90,45 @@ class WeatherQueryRequest(BaseModel):
     language: Optional[str] = "auto" # auto, en, hi, pa
     context_type: Optional[str] = "general" # general, travel, agriculture, event
     last_location: Optional[str] = None
+    last_locations: Optional[List[str]] = None
     last_date: Optional[str] = None
+    last_time_range: Optional[str] = None
     last_intent: Optional[str] = None
+    last_activity: Optional[str] = None
+    last_metric: Optional[str] = None
+    last_origin: Optional[str] = None
+    last_destination: Optional[str] = None
+    last_response_type: Optional[str] = None
     conversation_context: Optional[List[Dict[str, Any]]] = None
+
+
+class WeatherFactSet(BaseModel):
+    location: str
+    latitude: float
+    longitude: float
+    timezone: str = "auto"
+    requested_date: str
+    is_current_observation: bool = False
+    temperature_c: float
+    temp_max_c: float
+    temp_min_c: float
+    feels_like_c: float
+    rain_probability: float
+    daily_rain_probability_max: float
+    current_rain_probability: float
+    precipitation_mm: float
+    wind_speed_kmh: float
+    max_wind_kmh: float
+    humidity: float
+    condition_text: str
+    weather_code: int
+    uv_index: float
+    hourly: Optional[List[Dict[str, Any]]] = None
+    daily: Optional[List[Dict[str, Any]]] = None
+    source: str = "Open-Meteo Meteorological Service"
+    updated_at: str = "Just now"
+    confidence: str = "HIGH"
+    disagreement_note: Optional[str] = None
 
 
 class RiskEvaluation(BaseModel):
@@ -110,10 +146,11 @@ class WeatherQueryResponse(BaseModel):
     extracted_intent: str
     resolved_location: str
     resolved_date: str
-    response_type: str = Field("weather", description="weather | conversation | clarification | error | comparison | ranking | activity")
+    response_type: str = Field("weather", description="weather | conversation | clarification | error | comparison | ranking | activity | travel | regional_analysis")
     weather_facts: Optional[Dict[str, Any]] = None
     comparison_data: Optional[List[Dict[str, Any]]] = None
     ranking_data: Optional[List[Dict[str, Any]]] = None
+    travel_data: Optional[Dict[str, Any]] = None
     risk_evaluation: Optional[RiskEvaluation] = None
     grounded_answer: str
     source: str = "WeatherGPT Intelligence Engine"

@@ -54,7 +54,34 @@ MAJOR_INDIAN_LOCATIONS = {
     "nangli": {"name": "Nangli", "state": "Punjab", "country": "India", "display_name": "Nangli, Amritsar, Punjab, India", "latitude": 31.6500, "longitude": 74.8800},
     "nangli, amritsar": {"name": "Nangli", "state": "Punjab", "country": "India", "display_name": "Nangli, Amritsar, Punjab, India", "latitude": 31.6500, "longitude": 74.8800},
     "nangli amritsar": {"name": "Nangli", "state": "Punjab", "country": "India", "display_name": "Nangli, Amritsar, Punjab, India", "latitude": 31.6500, "longitude": 74.8800},
-    "nangali": {"name": "Nangli", "state": "Punjab", "country": "India", "display_name": "Nangli, Amritsar, Punjab, India", "latitude": 31.6500, "longitude": 74.8800}
+    "nangali": {"name": "Nangli", "state": "Punjab", "country": "India", "display_name": "Nangli, Amritsar, Punjab, India", "latitude": 31.6500, "longitude": 74.8800},
+    # Country & International Key Landmarks Disambiguation
+    "nepal": {"name": "Kathmandu", "state": "Bagmati", "country": "Nepal", "display_name": "Nepal", "latitude": 28.3949, "longitude": 84.1240, "is_country": True},
+    "bhutan": {"name": "Thimphu", "state": "Thimphu", "country": "Bhutan", "display_name": "Bhutan", "latitude": 27.5142, "longitude": 90.4336, "is_country": True},
+    "bangladesh": {"name": "Dhaka", "state": "Dhaka", "country": "Bangladesh", "display_name": "Bangladesh", "latitude": 23.6850, "longitude": 90.3563, "is_country": True},
+    "sri lanka": {"name": "Colombo", "state": "Western", "country": "Sri Lanka", "display_name": "Sri Lanka", "latitude": 7.8731, "longitude": 80.7718, "is_country": True},
+    "pakistan": {"name": "Islamabad", "state": "Federal", "country": "Pakistan", "display_name": "Pakistan", "latitude": 33.6844, "longitude": 73.0479, "is_country": True},
+    "dubai": {"name": "Dubai", "state": "Dubai", "country": "United Arab Emirates", "display_name": "Dubai, United Arab Emirates", "latitude": 25.2048, "longitude": 55.2708},
+    "united arab emirates": {"name": "Abu Dhabi", "state": "Abu Dhabi", "country": "United Arab Emirates", "display_name": "United Arab Emirates", "latitude": 24.4539, "longitude": 54.3773, "is_country": True},
+    "uae": {"name": "Abu Dhabi", "state": "Abu Dhabi", "country": "United Arab Emirates", "display_name": "United Arab Emirates", "latitude": 24.4539, "longitude": 54.3773, "is_country": True},
+    "arunachal pradesh": {"name": "Itanagar", "state": "Arunachal Pradesh", "country": "India", "display_name": "Arunachal Pradesh, India", "latitude": 27.0844, "longitude": 93.6053, "is_state": True},
+    "arunachal": {"name": "Itanagar", "state": "Arunachal Pradesh", "country": "India", "display_name": "Arunachal Pradesh, India", "latitude": 27.0844, "longitude": 93.6053, "is_state": True},
+    "maharashtra": {"name": "Mumbai", "state": "Maharashtra", "country": "India", "display_name": "Maharashtra, India", "latitude": 19.0760, "longitude": 72.8777, "is_state": True},
+    "barcelona": {"name": "Barcelona", "state": "Catalonia", "country": "Spain", "display_name": "Barcelona, Catalonia, Spain", "latitude": 41.3888, "longitude": 2.1590},
+    "barcelona, catalonia, spain": {"name": "Barcelona", "state": "Catalonia", "country": "Spain", "display_name": "Barcelona, Catalonia, Spain", "latitude": 41.3888, "longitude": 2.1590},
+    "london": {"name": "London", "state": "England", "country": "United Kingdom", "display_name": "London, England, United Kingdom", "latitude": 51.5085, "longitude": -0.1257}
+}
+
+DISALLOWED_STANDALONE_WORDS = {
+    "carry", "start", "cities", "city", "place", "places", "area", "areas",
+    "umbrella", "farming", "farm", "crops", "spraying", "suitable", "suitability",
+    "rain", "raining", "weather", "forecast", "today", "tomorrow", "sunday",
+    "monday", "tuesday", "wednesday", "thursday", "friday", "saturday",
+    "where", "which", "form", "bahar", "nikal", "niklu", "jaana", "jana",
+    "safe", "unsafe", "good", "bad", "time", "timing", "kal", "cal", "call", "kl",
+    "khet", "kheton", "khad", "apne", "apna", "apni", "daal", "daalna",
+    "kaam", "travel", "bike", "ride", "cycling", "allowed", "karna", "kar",
+    "karo", "batao", "dikhao", "poochna", "hogi", "hoga", "hain", "hai"
 }
 
 
@@ -68,22 +95,29 @@ async def search_locations(query: str, limit: int = 10, state_hint: Optional[str
 
     clean_lower = clean_query.lower()
 
-    # Fast-path check for major Indian locations & states
+    # Reject disallowed standalone words from ever being geocoded into random locations
+    if clean_lower in DISALLOWED_STANDALONE_WORDS:
+        logger.warning(f"Geocoding rejected standalone word: '{clean_query}'")
+        return []
+
+    # Fast-path check for major Indian locations, states & recognized countries
     if clean_lower in MAJOR_INDIAN_LOCATIONS:
         return [MAJOR_INDIAN_LOCATIONS[clean_lower].copy()]
 
-    # Handle composite queries like "Patna Bihar", "Patna, Bihar", "Barcelona, Catalonia, Spain"
+    # Also check normalized comma-free version
+    clean_lower_nospace = clean_lower.replace(", ", " ").replace(",", " ").strip()
+    if clean_lower_nospace in MAJOR_INDIAN_LOCATIONS:
+        return [MAJOR_INDIAN_LOCATIONS[clean_lower_nospace].copy()]
+
+    # Handle composite queries: only split by comma if comma is present
     search_target = clean_query
     if "," in clean_query:
         parts = [p.strip() for p in clean_query.split(",")]
         search_target = parts[0]
         if not state_hint and len(parts) > 1:
             state_hint = parts[1]
-    elif len(clean_query.split()) > 1:
-        words = clean_query.split()
-        search_target = words[0]
-        if not state_hint:
-            state_hint = " ".join(words[1:])
+    else:
+        search_target = clean_query
 
     url = "https://geocoding-api.open-meteo.com/v1/search"
     params = {
@@ -92,6 +126,11 @@ async def search_locations(query: str, limit: int = 10, state_hint: Optional[str
         "language": "en",
         "format": "json"
     }
+
+    is_sovereign_or_world = clean_lower in [
+        "nepal", "bhutan", "bangladesh", "sri lanka", "pakistan", "united arab emirates", "uae",
+        "dubai", "london", "paris", "tokyo", "new york", "barcelona", "singapore", "sydney", "toronto"
+    ]
 
     for attempt in range(2):
         try:
@@ -105,21 +144,30 @@ async def search_locations(query: str, limit: int = 10, state_hint: Optional[str
                         state = item.get("admin1", item.get("admin2", ""))
                         country = item.get("country", "")
                         country_code = item.get("country_code", "").upper()
+                        feature_code = item.get("feature_code", "")
 
-                        # Scoring logic to prioritize Indian locations and correct states
+                        # Scoring logic to prioritize recognized countries & capitals
                         population = item.get("population", 0) or 0
                         score = 0
-                        if country_code == "IN" or country.lower() == "india":
+
+                        # Sovereign country boost
+                        if feature_code == "PCLI":
+                            score += 250
+                        elif feature_code in ["PPLC", "PPLA", "PPLA2"]:
+                            score += 120
+
+                        # Only apply Indian bias if NOT explicitly looking for a known sovereign country or world metropolis
+                        if not is_sovereign_or_world and (country_code == "IN" or country.lower() == "india"):
                             score += 100
+
                         if state_hint and state and state_hint.lower() in state.lower():
                             score += 200
                         if name.lower() == search_target.lower():
-                            score += 50
-                        # Population tiebreaker: use log10 scale so 9M city (~7pts) beats 400K (~5.6pts)
-                        # This prevents false ambiguity for clearly dominant cities like London, England
+                            score += 80
+
                         import math
                         if population > 0:
-                            score += round(math.log10(population), 1)
+                            score += round(math.log10(population) * 10, 1)
 
                         display_parts = [name]
                         if state and state.lower() != name.lower():
