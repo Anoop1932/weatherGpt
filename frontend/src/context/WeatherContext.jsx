@@ -36,9 +36,11 @@ export const WeatherProvider = ({ children }) => {
       sender: 'assistant',
       text: 'Namaste! I am WeatherGPT. Ask me natural questions by text or voice: "Kal Patna Bihar mein barish hogi?", "Jalandhar ka weather kya hai is time?", or "Kapurthala Punjab mein barish hogi?"',
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-      risk_level: 'LOW',
+      response_type: 'conversation',
+      risk_level: null,
       confidence: 'HIGH',
-      source: 'Open-Meteo Meteorological Service'
+      source: 'WeatherGPT Assistant',
+      weather_facts: null
     }
   ]);
 
@@ -162,10 +164,10 @@ export const WeatherProvider = ({ children }) => {
       });
       const data = resp.data;
 
-      const isWeatherResp = data.response_type === 'weather' && !data.is_non_weather && !data.is_missing_location;
+      const isWeatherResp = (data.response_type === 'weather' || data.response_type === 'activity' || data.response_type === 'comparison' || data.response_type === 'ranking') && !data.is_non_weather && !data.is_missing_location;
 
-      // Update conversation session context memory ONLY if it's a valid weather response
-      if (isWeatherResp && data.resolved_location) {
+      // Update conversation session context memory ONLY if it's a valid weather/activity response
+      if (isWeatherResp && data.resolved_location && (data.response_type === 'weather' || data.response_type === 'activity')) {
         setActiveContextLocation(data.resolved_location);
         if (data.weather_facts?.latitude && data.weather_facts?.longitude && data.resolved_location.toLowerCase() !== location.toLowerCase()) {
           setLocation(data.resolved_location);
@@ -180,31 +182,49 @@ export const WeatherProvider = ({ children }) => {
         setActiveContextIntent(data.extracted_intent);
       }
 
+      const hasWeatherCard = (data.response_type === 'weather' || data.response_type === 'activity') && !data.is_non_weather && !data.is_missing_location;
+
       const assistantMsg = {
         sender: 'assistant',
         text: data.grounded_answer,
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         detected_language: data.detected_language || language,
         response_type: data.response_type || (data.is_non_weather ? 'conversation' : data.is_missing_location ? 'clarification' : 'weather'),
-        risk_level: isWeatherResp ? (data.risk_evaluation?.risk_level || 'LOW') : null,
+        risk_level: hasWeatherCard ? (data.risk_evaluation?.risk_level || null) : null,
         confidence: data.confidence || 'HIGH',
         source: data.source,
         updated_at: data.updated_at,
-        weather_facts: isWeatherResp ? data.weather_facts : null,
-        risk_evaluation: isWeatherResp ? data.risk_evaluation : null,
-        is_non_weather: !isWeatherResp,
+        weather_facts: hasWeatherCard ? data.weather_facts : null,
+        comparison_data: data.comparison_data || null,
+        ranking_data: data.ranking_data || null,
+        risk_evaluation: hasWeatherCard ? data.risk_evaluation : null,
+        is_non_weather: data.is_non_weather,
         is_missing_location: data.is_missing_location
       };
       setChatMessages((prev) => [...prev, assistantMsg]);
       return assistantMsg;
     } catch (err) {
+      console.error('Weather intelligence query error:', err);
+      const isHi = language === 'hi';
+      const isPa = language === 'pa';
+      const errText = isHi
+        ? 'क्षमा करें, आपके सवाल का उत्तर प्राप्त करने में समस्या हुई। कृपया दोबारा प्रयास करें।'
+        : isPa
+        ? 'ਮਾਫ਼ ਕਰਨਾ, ਤੁਹਾਡੇ ਸਵਾਲ ਦਾ ਜਵਾਬ ਲੈਣ ਵਿੱਚ ਸਮੱਸਿਆ ਆਈ। ਕਿਰਪਾ ਕਰਕੇ ਦੁਬਾਰਾ ਕੋਸ਼ਿਸ਼ ਕਰੋ।'
+        : 'Sorry, there was an issue processing your query. Please try again.';
       const fallbackMsg = {
         sender: 'assistant',
-        text: `Based on verified weather evidence for ${activeContextLocation || location}, temperature is ${currentWeather?.temperature_c || 30}°C and rain probability is ${currentWeather?.rain_probability || 20}%.`,
+        text: errText,
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        risk_level: 'LOW',
-        confidence: 'HIGH',
-        source: 'Open-Meteo'
+        detected_language: language,
+        response_type: 'conversation',
+        risk_level: null,
+        confidence: 'LOW',
+        source: 'WeatherGPT Assistant',
+        weather_facts: null,
+        risk_evaluation: null,
+        is_non_weather: true,
+        is_missing_location: false
       };
       setChatMessages((prev) => [...prev, fallbackMsg]);
       return fallbackMsg;

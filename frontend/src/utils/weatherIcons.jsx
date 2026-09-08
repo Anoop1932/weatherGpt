@@ -21,48 +21,48 @@ export const getWeatherIcon = (code = 0, isDay = true, className = "w-8 h-8") =>
 
   // Thunderstorm
   if ([95, 96, 99].includes(numericCode)) {
-    return <CloudLightning className={`${className} text-amber-500`} />;
+    return <CloudLightning className={`${className} text-amber-500`} aria-hidden="true" focusable="false" />;
   }
 
   // Snow
   if ([71, 73, 75].includes(numericCode)) {
-    return <CloudSnow className={`${className} text-sky-400`} />;
+    return <CloudSnow className={`${className} text-sky-400`} aria-hidden="true" focusable="false" />;
   }
 
   // Fog
   if ([45, 48].includes(numericCode)) {
-    return <CloudFog className={`${className} text-slate-400`} />;
+    return <CloudFog className={`${className} text-slate-400`} aria-hidden="true" focusable="false" />;
   }
 
   // Rain / Rain Showers
   if ([61, 63, 65, 80, 81, 82].includes(numericCode)) {
-    return <CloudRain className={`${className} text-sky-500`} />;
+    return <CloudRain className={`${className} text-sky-500`} aria-hidden="true" focusable="false" />;
   }
 
   // Drizzle
   if ([51, 53, 55].includes(numericCode)) {
-    return <CloudDrizzle className={`${className} text-sky-400`} />;
+    return <CloudDrizzle className={`${className} text-sky-400`} aria-hidden="true" focusable="false" />;
   }
 
   // Overcast
   if (numericCode === 3) {
-    return <Cloud className={`${className} text-slate-400`} />;
+    return <Cloud className={`${className} text-slate-400`} aria-hidden="true" focusable="false" />;
   }
 
   // Partly Cloudy
   if ([1, 2].includes(numericCode)) {
     return isDay ? (
-      <CloudSun className={`${className} text-amber-500`} />
+      <CloudSun className={`${className} text-amber-500`} aria-hidden="true" focusable="false" />
     ) : (
-      <CloudMoon className={`${className} text-sky-300`} />
+      <CloudMoon className={`${className} text-sky-300`} aria-hidden="true" focusable="false" />
     );
   }
 
   // Clear Sky (Code 0)
   return isDay ? (
-    <Sun className={`${className} text-amber-500`} />
+    <Sun className={`${className} text-amber-500`} aria-hidden="true" focusable="false" />
   ) : (
-    <Moon className={`${className} text-sky-300`} />
+    <Moon className={`${className} text-sky-300`} aria-hidden="true" focusable="false" />
   );
 };
 

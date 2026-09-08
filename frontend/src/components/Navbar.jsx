@@ -25,7 +25,6 @@ export const Navbar = ({ onToggleMobileNav, isMobileNavOpen }) => {
     language, 
     setLanguage, 
     theme,
-    toggleTheme,
     useCurrentGeolocation, 
     geoLoading,
     recentLocs,
@@ -242,15 +241,7 @@ export const Navbar = ({ onToggleMobileNav, isMobileNavOpen }) => {
       {/* Right Action Bar: Theme Toggle & Language Menu */}
       <div className="flex items-center gap-2 shrink-0">
         {/* Light / Dark Mode Toggle Button */}
-        <button
-          type="button"
-          onClick={toggleTheme}
-          className="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 transition"
-          title={theme === 'dark' ? "Switch to Light Mode" : "Switch to Dark Mode"}
-          aria-label="Toggle theme mode"
-        >
-          {theme === 'dark' ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4 text-slate-600" />}
-        </button>
+        
 
         {/* Language Selector Dropdown */}
         <div className="relative shrink-0">

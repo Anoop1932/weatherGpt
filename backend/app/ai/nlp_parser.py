@@ -47,23 +47,71 @@ CITY_SYNONYMS = {
     "gauhati": "Guwahati"
 }
 
+# Devanagari city name -> Romanized canonical name mapping
+DEVANAGARI_CITY_MAP = {
+    "पटना": "Patna",
+    "दिल्ली": "Delhi",
+    "नई दिल्ली": "New Delhi",
+    "मुंबई": "Mumbai",
+    "कोलकाता": "Kolkata",
+    "चेन्नई": "Chennai",
+    "जयपुर": "Jaipur",
+    "लखनऊ": "Lucknow",
+    "लखनउ": "Lucknow",
+    "हैदराबाद": "Hyderabad",
+    "बेंगलुरु": "Bengaluru",
+    "अमृतसर": "Amritsar",
+    "अम्रितसर": "Amritsar",
+    "जलंधर": "Jalandhar",
+    "लुधियाना": "Ludhiana",
+    "चंडीगढ़": "Chandigarh",
+    "हिसार": "Hisar",
+    "गुवाहाटी": "Guwahati",
+    "वाराणसी": "Varanasi",
+    "आगरा": "Agra",
+    "कानपुर": "Kanpur",
+    "पुणे": "Pune",
+    "सूरत": "Surat",
+    "अहमदाबाद": "Ahmedabad",
+    "नागपुर": "Nagpur",
+    "शिमला": "Shimla",
+    "कपूरथला": "Kapurthala",
+    "गया": "Gaya",
+    "मुजफ्फरपुर": "Muzaffarpur",
+    "भागलपुर": "Bhagalpur",
+}
+
+# Devanagari state name -> Canonical state name mapping
+DEVANAGARI_STATE_MAP = {
+    "बिहार": "Bihar",
+    "पंजाब": "Punjab",
+    "हरियाणा": "Haryana",
+    "दिल्ली": "Delhi",
+    "राजस्थान": "Rajasthan",
+    "उत्तर प्रदेश": "Uttar Pradesh",
+    "महाराष्ट्र": "Maharashtra",
+    "असम": "Assam",
+    "असाम": "Assam",
+}
+
 KNOWN_CITIES = {
     "amritsar", "ludhiana", "patna", "jalandhar", "kapurthala", "delhi", "new delhi",
     "mumbai", "bengaluru", "kolkata", "chennai", "hyderabad", "jaipur", "chandigarh",
     "patiala", "bathinda", "shimla", "srinagar", "lucknow", "varanasi", "agra",
     "gaya", "muzaffarpur", "bhagalpur", "pune", "ahmedabad", "surat", "kanpur", "nagpur",
-    "guwahati", "gauhati", "new york", "london", "paris", "tokyo", "dubai", "singapore", "sydney", "toronto"
+    "guwahati", "gauhati", "hisar", "nangli", "nangali", "barcelona", "new york", "london", "paris", "tokyo", "dubai", "singapore", "sydney", "toronto"
 }
 
-ROMAN_PUNJABI_WORDS = {
-    "meeh", "pavega", "kida", "rahega", "kina", "hou", "tuhanu", "saade", "pind",
-    "da", "dasso", "hovega", "pao", "vekh", "ajj", "kallh", "nu", "vich", "ki aa", "kaisa aa"
+DISTINCTIVE_PUNJABI_WORDS = {
+    "meeh", "pavega", "kida", "kina", "hou", "tuhanu", "saade", "pind",
+    "dasso", "hovega", "pao", "vekh", "kallh", "kivein", "changa", "satsriakal", "hanji"
 }
 
 ROMAN_HINDI_WORDS = {
     "kal", "aaj", "baarish", "barish", "hogi", "hoga", "mausam", "karna", "jaana",
     "chahiye", "hai", "mein", "par", "subah", "shaam", "parso", "parson", "kab", "kya", "ko",
-    "kitni", "kitna", "kaisa", "batao", "bata"
+    "kitni", "kitna", "kaisa", "batao", "bata", "rahega", "rahegi", "rahenge",
+    "kahan", "kaun", "kaunsi", "jagah", "sabse", "zyada", "jyada", "adhik", "kam"
 }
 
 MONTHS_MAP = {
@@ -83,43 +131,85 @@ WEEKDAYS_MAP = {
 
 NON_LOCATION_STOPWORDS = {
     # English Adjectives & Quality Words
-    "good", "bad", "best", "better", "suitable", "likely", "possible", "safe", "unsafe",
+    "good", "bad", "best", "better", "suitable", "suitability", "likely", "possible", "safe", "unsafe",
     "great", "fine", "nice", "pleasant", "harsh", "extreme", "severe", "perfect",
     # Activity & Event Words
     "outdoor", "indoors", "indoor", "events", "event", "activity", "activities", "picnic",
     "travel", "trip", "journey", "tour", "drive", "farming", "farm", "crops", "spraying",
-    "match", "party", "wedding", "shaadi", "function", "outing", "walk", "jog", "outside",
+    "match", "party", "wedding", "shaadi", "function", "outing", "walk", "jog", "outside", "bahar",
+    "bike", "ride", "cycling", "cycle", "bicycle", "biking", "riding",
+    # Umbrella & Protection
+    "umbrella", "ambrella", "amrela", "umbrela", "chhata", "chaata", "raincoat",
     # Weather Vocabulary
-    "weather", "forecast", "mausam", "taapman", "temperature", "rain", "barish", "baarish",
+    "weather", "forecast", "mausam", "mosam", "taapman", "tapman", "vartman", "temperature", "rain", "barish", "baarish",
     "meeh", "shower", "drizzle", "sun", "sunny", "cloud", "cloudy", "wind", "windy", "hawa",
     "storm", "stormy", "fog", "foggy", "dhund", "humidity", "nami", "uv", "visibility", "pressure",
-    # Time Vocabulary
+    # Time Vocabulary & Transliterations
     "today", "tomorrow", "yesterday", "day", "after", "morning", "evening", "afternoon", "night",
     "tonight", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday",
     "january", "february", "march", "april", "may", "june", "july", "august", "september",
-    "october", "november", "december", "subah", "shaam", "kal", "aaj", "parso", "parson",
-    "kallh", "ajj", "is time", "time", "current", "right now", "now", "abhi", "waqt",
+    "october", "november", "december", "subah", "shaam", "dopahar", "raat", "kal", "aaj", "parso", "parson",
+    "cal", "call", "kl", "kallh", "ajj", "is time", "time", "current", "right now", "now", "abhi", "waqt", "din",
     # Auxiliary, Prepositions & Question Connectors
     "is", "are", "am", "was", "were", "be", "been", "being", "will", "would", "could", "should",
     "can", "may", "might", "must", "do", "does", "did", "have", "has", "had",
-    "in", "at", "near", "around", "for", "from", "to", "by", "with", "on", "of", "the", "a", "an", "s", "about",
-    # Questions & Pronouns
-    "what", "when", "where", "how", "why", "who", "which", "it", "you", "me", "i",
+    "in", "at", "near", "around", "from", "for", "to", "by", "with", "on", "of", "the", "a", "an", "s", "about",
+    # Questions, Pronouns, Ranking & Comparison Connectors
+    "what", "when", "where", "how", "why", "who", "which", "form", "it", "you", "me", "i",
     "we", "us", "they", "them", "my", "your", "our", "their", "this", "that", "there", "here",
+    "ham", "hum", "humne", "humein", "mujhe", "main", "mera", "meri", "mere",
+    "aap", "apka", "apki", "apke", "tum", "tumhara", "tumhari", "tumhare", "tumhe", "tumhen", "tuhada", "tera", "teri", "tere",
+    "compare", "comparison", "vs", "versus", "aur", "and", "or", "kaunsa", "kaun", "kaunsi", "difference",
+    "kahan", "jagah", "sabse", "zyada", "jyada", "adhik", "kam", "highest", "lowest", "most",
     # Additional Noise & Request Words
     "probability", "chance", "chances", "possibility", "level", "status", "condition", "conditions",
     "tell", "show", "give", "check", "info", "information", "details", "report", "update", "updates", "stats",
+    "naam", "name", "milta", "aata", "chhajje",
     # Conversational Social / Noise Words
     "hal", "haal", "theek", "bhai", "bhaiya", "scene", "mood", "okay", "ok", "doing", "going", "up",
     "something", "anything", "yourself", "myself", "help", "know", "think", "thought", "believe",
     "feel", "guess", "bro", "dude", "friend", "buddy", "kaise", "kaisa", "ho", "na", "sir", "ji",
     "batao", "btao", "pooch", "poochhna", "dasso", "karo", "kya", "r", "u", "are", "there", "chal", "raha", "sab",
+    # Motion & Action Verbs
+    "lekar", "nikal", "niklu", "nikle", "nikalna", "ja", "jana", "jaana", "chale", "chalna", "sakte", "sakta", "sakti", "chahiye",
+    # Tech & Devotional Noise
+    "visual", "studio", "code", "mata", "di", "jai", "shree", "ram", "radhe",
     # Hindi/Punjabi postpositions, grammar particles & auxiliary
-    "ka", "ki", "ke", "mein", "me", "se", "ko", "par", "vich", "da", "de", "di", "nu",
-    "hogi", "hoga", "hovega", "kitna", "kitni", "hai", "hain", "si", "tha", "thi", "the",
+    "ka", "ki", "ke", "mein", "me", "se", "ko", "par", "vich", "da", "de", "di", "nu", "liye", "khatir",
+    "hogi", "hoga", "hovega", "kitna", "kitni", "hai", "hain", "si", "tha", "thi", "the", "hui",
+    "rahega", "rahegi", "rahenge", "kab",
     # Hinglish Weather Word Variations
-    "vedar", "wether", "weathr"
+    "vedar", "wether", "weathr", "wheather", "weathar",
+    # Devanagari stopwords (time, weather, question, auxiliary)
+    "कल", "आज", "परसों", "बारिश", "मौसम", "तापमान", "में", "का", "की", "के", "क्या",
+    "होगी", "होगा", "है", "हैं", "कैसा", "कितना", "कितनी",
+    "था", "थी", "थे", "हुई", "पर", "से", "को", "बाहर", "छाता",
+    "वर्तमान", "अभी", "सुबह", "शाम", "दोपहर", "रात",
+    "मौसम", "हवा", "धूप", "बादल", "गर्मी", "ठंड", "सबसे", "ज्यादा", "ज़्यादा", "कहाँ", "कौन"
 }
+
+
+def normalize_query_text(query: str) -> str:
+    """
+    Normalizes speech-to-text variations and common transliteration typos before NLP classification.
+    """
+    q = query.strip()
+    # Normalize common transliterations of weather words
+    q = re.sub(r'\b(vedar|wheather|weathar|wether|weathr)\b', 'weather', q, flags=re.IGNORECASE)
+    q = re.sub(r'\bbaarish\b', 'barish', q, flags=re.IGNORECASE)
+    q = re.sub(r'\btaapman\b', 'tapman', q, flags=re.IGNORECASE)
+    q = re.sub(r'\bmosam\b', 'mausam', q, flags=re.IGNORECASE)
+    q = re.sub(r'\bpanjab\b', 'punjab', q, flags=re.IGNORECASE)
+    q = re.sub(r'\basam\b', 'assam', q, flags=re.IGNORECASE)
+    q = re.sub(r'\bkallh\b', 'kal', q, flags=re.IGNORECASE)
+    q = re.sub(r'\bparson\b', 'parso', q, flags=re.IGNORECASE)
+    # Speech-recognition and Hinglish transliterations of tomorrow: "cal", "call", "kl" -> "kal"
+    q = re.sub(r'\b(cal|call|kl)\b', 'kal', q, flags=re.IGNORECASE)
+    # Normalize umbrella variants
+    q = re.sub(r'\b(ambrella|amrela|umbrela)\b', 'umbrella', q, flags=re.IGNORECASE)
+    # Strip conversational chhajje
+    q = re.sub(r'\bchhajje\b', '', q, flags=re.IGNORECASE)
+    return q
 
 
 def is_gibberish(query: str) -> bool:
@@ -155,7 +245,7 @@ class NLPQueryParser:
     def detect_language(self, query: str) -> str:
         """
         Detects message language:
-        - Gurmukhi script or Roman Punjabi -> 'pa'
+        - Gurmukhi script or distinctive Roman Punjabi -> 'pa'
         - Devanagari script or Roman Hindi / Hinglish -> 'hi'
         - English -> 'en'
         """
@@ -167,37 +257,81 @@ class NLPQueryParser:
 
         query_words = set(re.findall(r'\b\w+\b', query.lower()))
 
-        if len(query_words.intersection(ROMAN_PUNJABI_WORDS)) >= 1:
+        distinctive_pa = query_words.intersection(DISTINCTIVE_PUNJABI_WORDS)
+        hindi_matches = query_words.intersection(ROMAN_HINDI_WORDS)
+
+        if len(distinctive_pa) > 0 and len(distinctive_pa) >= len(hindi_matches):
             return "pa"
 
-        if len(query_words.intersection(ROMAN_HINDI_WORDS)) >= 1:
+        if len(hindi_matches) >= 1:
             return "hi"
 
         return "en"
 
     def classify_intent_category(self, query: str) -> str:
         """
-        Classifies user message into 9 Hard Weather Gate Categories:
+        Classifies user message into standard intent categories:
         - GREETING
-        - NON_WEATHER_CONVERSATION
-        - CAPABILITY
-        - THANKS
-        - UNCLEAR
+        - CONVERSATION
+        - HELP/CAPABILITY
+        - WEATHER_CURRENT
+        - WEATHER_FORECAST
+        - WEATHER_RAIN
+        - WEATHER_TEMPERATURE
+        - WEATHER_HUMIDITY
+        - WEATHER_WIND
+        - WEATHER_CONDITION
+        - WEATHER_WARNING
+        - ACTIVITY_SUITABILITY
+        - AGRICULTURE
+        - OUTDOOR_EVENT
+        - CYCLING/BIKE_RIDE
+        - COMPARISON
+        - RANKING
+        - HISTORICAL_WEATHER
         - LOCATION_ONLY
-        - WEATHER_FOLLOWUP
-        - WEATHER_QUERY
+        - FOLLOW_UP
+        - UNCLEAR
         """
-        q_lower = query.lower().strip()
+        normalized_q = normalize_query_text(query)
+        q_lower = normalized_q.lower().strip()
 
         # 1. Gibberish / Unclear Check
-        if is_gibberish(query):
+        if is_gibberish(normalized_q):
             return "UNCLEAR"
 
-        # 2. Greetings
-        if re.search(r'\b(hello|hi|hey|good morning|good evening|good night|namaste|namaskar|sat sri akal|pranam|what\'s up|sup)\b', q_lower) and not any(w in q_lower for w in ["weather", "vedar", "wether", "barish", "rain", "mausam", "temp"]):
+        # Explicit Unclear Query Fragments (e.g. "umbrella is", "is which form in Amritsar", or incomplete phrases)
+        if re.search(r'\bumbrella\s+is\b', q_lower) or re.search(r'\bis\s+which\s+form\b', q_lower) or re.search(r'\bwhich\s+form\b', q_lower):
+            return "UNCLEAR"
+
+        # 2. Non-weather software / coding / tech questions (e.g. "Visual Studio code kahan per Milta Hai")
+        if any(ph in q_lower for ph in ["visual studio", "vs code", "vscode", "kahan per milta hai", "kahan milta hai", "download visual", "download code"]):
+            return "NON_WEATHER"
+
+        # 3. Identity Queries (e.g. "tumhara naam kya hai", "what is your name", "who are you")
+        if any(ph in q_lower for ph in [
+            "tumhara naam", "naam kya hai", "apka naam", "what is your name", "who are you",
+            "who r u", "tum kaun ho", "aap kaun ho", "tusi kaun ho", "what are you called"
+        ]):
+            return "IDENTITY"
+
+        # 4. Capabilities Queries (e.g. "Tumhen Kya Aata Hai", "what can you do")
+        if any(ph in q_lower for ph in [
+            "tumhen kya aata hai", "tumhe kya aata hai", "kya aata hai", "what can you do",
+            "kya kar sakte ho", "tum kya kar sakte ho", "aap kya kar sakte ho", "what are your capabilities",
+            "what features do you have"
+        ]):
+            return "CAPABILITIES"
+
+        # 5. Devotional and Traditional Greetings (e.g. "jai mata di", "ram ram")
+        if re.search(r'\b(jai\s+mata\s+di|jai\s+shree\s+ram|radhe\s+radhe|har\s+har\s+mahadev|om\s+namah\s+shivay)\b', q_lower):
             return "GREETING"
 
-        # 3. Non-weather Conversational / Social
+        # 6. Standard Greetings
+        if re.search(r'\b(hello|hi|hey|good morning|good evening|good night|namaste|namaskar|sat sri akal|pranam|what\'s up|sup)\b', q_lower) and not any(w in q_lower for w in ["weather", "barish", "rain", "mausam", "temp", "tapman"]):
+            return "GREETING"
+
+        # 7. Non-weather Conversational / Social
         conversational_patterns = [
             r"\bkya\s+h[a|aa]*l\b",
             r"\bh[a|aa]+l\s+hai\b",
@@ -224,96 +358,183 @@ class NLPQueryParser:
             r"\bdoing\s+great\b",
             r"\bdoing\s+well\b"
         ]
-        if any(re.search(pat, q_lower) for pat in conversational_patterns) and not any(w in q_lower for w in ["weather", "vedar", "wether", "barish", "baarish", "rain", "mausam", "temp", "taapman"]):
-            return "NON_WEATHER_CONVERSATION"
+        if any(re.search(pat, q_lower) for pat in conversational_patterns) and not any(w in q_lower for w in ["weather", "barish", "rain", "mausam", "temp", "tapman"]):
+            return "CONVERSATION"
 
-        # 4. Capabilities / Identity / Help
-        if any(ph in q_lower for ph in [
-            "who are you", "who r u", "tum kaun ho", "aap kaun ho", "tusi kaun ho",
-            "what can you do", "main kya kar sakta", "tum kya kar sakte ho", "help me",
-            "tell me something about yourself", "can you help me", "what do you know",
-            "what are you", "what is weathergpt"
-        ]):
-            return "CAPABILITY"
+        # 8. Help Queries
+        if any(ph in q_lower for ph in ["help me", "can you help me", "need help", "madad"]):
+            return "HELP"
 
-        # 5. Thanks / Acknowledgement
+        # 9. Thanks / Acknowledgement
         if re.search(r'\b(thank you|thanks|shukriya|dhanyawad|dhanwad|thanku|bye|goodbye)\b', q_lower):
-            return "THANKS"
+            return "CONVERSATION"
 
-        # 6. Check for Weather Keywords or Parameters
-        weather_keywords = [
-            "weather", "vedar", "wether", "weathr", "forecast", "mausam", "barish", "baarish", "meeh", "rain", "temperature",
-            "temp", "tapman", "taapman", "humidity", "nami", "wind", "hawa", "uv", "visibility",
-            "dhund", "fog", "pressure", "sunrise", "sunset", "outdoor", "events", "picnic", "trip",
-            "travel", "shaadi", "wedding", "farming", "crop", "kheti", "umbrella", "hot", "cold", "garmi", "thand", "spraying"
+        # 10. Regional Ranking / Extremes / Spatial Analysis
+        ranking_patterns = [
+            r'\bsabse\s+(?:zyada|jyada|adhik|kam)\b',
+            r'\b(kahan|kahan\s+per|kahan\s+par|kis\s+jagah|kis\s+shahar|kis\s+city|kis\s+state)\b.*\b(?:hogi|hoga|ho\s+rahi|barish|rain)\b',
+            r'\bmost\s+(?:rain|rainfall|rainy|hot|cold)\b',
+            r'\bhighest\s+(?:rain|rainfall|precipitation|temperature|temp)\b',
+            r'\blowest\s+(?:temperature|temp|rain)\b',
+            r'\bhottest\b',
+            r'\bcoldest\b',
+            r'\bwettest\b',
+            r'\bmaximum\s+barish\b'
         ]
-        if any(w in q_lower for w in weather_keywords):
-            return "WEATHER_QUERY"
+        if any(re.search(pat, q_lower) for pat in ranking_patterns):
+            return "RANKING"
 
-        # 7. Check if location-only query (e.g. "Amritsar", "Delhi", "Patna, Bihar")
+        # 11. Comparison
+        if any(w in q_lower for w in ["compare", "comparison", "difference", "kaunsa din", "better hai", "kaun sa din", "vs", "versus"]):
+            return "COMPARISON"
+        if re.search(r'\b[a-zA-Z\u0900-\u097f\u0a00-\u0a7f]+\s+(?:aur|and|vs)\s+[a-zA-Z\u0900-\u097f\u0a00-\u0a7f]+\b', q_lower) and any(w in q_lower for w in ["weather", "mausam", "tapman", "temp", "barish", "rain"]):
+            return "COMPARISON"
+
+        # 12. Historical Weather (Past Tense Check)
+        past_markers = [r'\byesterday\b', r'\bkal\b.*\b(tha|thi|the|si|kya\s+tha|hui\s+thi)\b', r'\bpichle\b', r'\bpast\b']
+        if any(re.search(pat, q_lower) for pat in past_markers):
+            return "HISTORICAL_WEATHER"
+
+        # 13. Cycling / Bike Ride Activity
+        if any(w in q_lower for w in ["bike ride", "cycling", "bike", "bicycle", "cycle", "riding", "biking"]):
+            return "BIKE_RIDE" if "bike" in q_lower else "CYCLING"
+
+        # 14. Agriculture / Farming / Spraying
+        if any(w in q_lower for w in ["spraying", "crop", "kheti", "farmer", "farming", "pesticide", "fertilizer", "kisaan", "chhidkaw"]):
+            return "AGRICULTURE"
+
+        # 15. Outdoor Event
+        if any(w in q_lower for w in ["outdoor event", "outdoor events", "wedding", "match", "party", "function", "shaadi"]):
+            return "OUTDOOR_EVENT"
+
+        # 16. Activity Suitability (Umbrella Carrying & Going Outside)
+        umbrella_activity_patterns = [
+            r'\bumbrella\b.*\b(?:lekar|nikal|niklu|ja\s+sakte|carry|take|bahar|outside)\b',
+            r'\b(?:lekar|carry|take)\b.*\bumbrella\b',
+            r'\b(?:bahar|outside)\b.*\b(?:jana|ja\s+sakte|nikal|niklu)\b',
+            r'\bshould\s+i\s+carry\s+an\s+umbrella\b',
+            r'\bcan\s+i\s+go\s+outside\b',
+            r'\bkal\s+bahar\s+jana\s+theek\s+rahega\b',
+            r'\bumbrella\s+lekar\s+niklu\b',
+            r'\bbaarish\s+mein\s+bahar\s+ja\s+sakte\b',
+            r'\bbahar\s+jana\s+safe\s+hai\b',
+            r'\bbahar\s+jana\s+(?:theek|sahi|safe)\b',
+            r'\b(?:safe|theek|sahi)\s+hai\s+bahar\s+jana\b'
+        ]
+        if any(re.search(pat, q_lower) for pat in umbrella_activity_patterns):
+            return "ACTIVITY_SUITABILITY"
+
+        # 17. General Activity / Travel Suitability
+        if any(w in q_lower for w in ["picnic", "travel", "jaana", "trip", "drive", "safari", "outing", "running", "jog", "walk", "outdoor", "outdoors"]):
+            return "ACTIVITY_SUITABILITY"
+
+        # 18. Current Weather (Real-time continuous rain, abhi/vartman)
+        continuous_current_patterns = [
+            r'\bis\s+rain\s+is\s+happening\b',
+            r'\bis\s+rain\s+happening\b',
+            r'\bis\s+it\s+raining\b',
+            r'\bbarish\s+ho\s+rahi\s+hai\b',
+            r'\bho\s+rahi\s+hai\b',
+            r'\babhi\b',
+            r'\bvartman\b',
+            r'\bright\s+now\b',
+            r'\bcurrent\b',
+            r'\bis\s+time\b',
+            r'\bis\s+waqt\b'
+        ]
+        if any(re.search(pat, q_lower) for pat in continuous_current_patterns):
+            return "WEATHER_CURRENT"
+
+        # 19. Specific Weather Parameters
+        if any(w in q_lower for w in ["rain", "barish", "meeh", "shower", "drizzle", "umbrella", "precipitation"]):
+            return "WEATHER_RAIN"
+        if any(w in q_lower for w in ["temperature", "tapman", "garmi", "thand", "temp", "hot", "cold", "maximum", "minimum"]):
+            return "WEATHER_TEMPERATURE"
+        if any(w in q_lower for w in ["humidity", "nami"]):
+            return "WEATHER_HUMIDITY"
+        if any(w in q_lower for w in ["wind", "hawa", "tez hawa", "breeze"]):
+            return "WEATHER_WIND"
+        if any(w in q_lower for w in ["warning", "alert", "danger", "storm", "cyclone", "toofan"]):
+            return "WEATHER_WARNING"
+        if any(w in q_lower for w in ["cloud", "cloudy", "fog", "foggy", "dhund", "clear sky", "condition"]):
+            return "WEATHER_CONDITION"
+
+        # 20. Location-only query (e.g. "Amritsar", "Delhi", "Patna, Bihar")
         raw_words = re.findall(r'\b[a-zA-Z\u0900-\u097f\u0a00-\u0a7f]+\b', q_lower)
         clean_words = [w for w in raw_words if w not in NON_LOCATION_STOPWORDS]
         if len(raw_words) <= 3 and len(clean_words) >= 1 and all(w.lower() in KNOWN_CITIES or w.lower() in INDIAN_STATES or w.lower() in CITY_SYNONYMS for w in clean_words):
             return "LOCATION_ONLY"
 
-        # 8. Time / Parameter short follow-up
-        if any(w in q_lower for w in ["kal", "tomorrow", "today", "aaj", "parso", "sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"]):
-            return "WEATHER_FOLLOWUP"
+        # 21. Short follow-up query (e.g. "kal?", "barish?", "bike ride ke liye?", "why?")
+        # Only if NO explicit city or state is in the query
+        has_known_place = any(w.lower() in KNOWN_CITIES or w.lower() in INDIAN_STATES or w.lower() in CITY_SYNONYMS for w in clean_words)
+        if not has_known_place and len(raw_words) <= 5 and any(w in q_lower for w in [
+            "kal", "tomorrow", "today", "aaj", "parso", "why", "kyun", "barish", "rain", "bike", "ride",
+            "what about", "and rain", "how much", "kitna", "kitni", "wahan", "yahan", "iske kal"
+        ]):
+            return "FOLLOW_UP"
 
-        return "WEATHER_QUERY"
+        return "WEATHER_FORECAST"
 
     def classify_intent(self, query: str) -> str:
         """
-        Classifies intent into specific weather parameters or non-weather categories.
+        Classifies intent into granular programmatic keys compatible with grounded engine.
         """
-        q_lower = query.lower().strip()
         cat = self.classify_intent_category(query)
+        q_lower = normalize_query_text(query).lower()
 
         if cat == "GREETING":
             return "non_weather_greeting"
-        elif cat == "CAPABILITY":
-            return "non_weather_meta"
-        elif cat == "THANKS":
-            return "non_weather_thanks"
-        elif cat == "NON_WEATHER_CONVERSATION":
+        elif cat == "IDENTITY":
+            return "identity"
+        elif cat == "CAPABILITIES":
+            return "capability"
+        elif cat == "HELP":
+            return "help"
+        elif cat == "NON_WEATHER":
+            return "non_weather"
+        elif cat == "CONVERSATION":
+            if re.search(r'\b(thank you|thanks|shukriya|dhanyawad)\b', q_lower):
+                return "non_weather_thanks"
             return "non_weather_conversation"
         elif cat == "UNCLEAR":
             return "unclear_gibberish"
-
-        # Outdoor Activities & Events
-        if any(w in q_lower for w in ["outdoor", "outdoors", "events", "event", "picnic", "go outside", "outside", "activities", "outing"]):
-            return "outdoor_activity"
-
-        # Domain Specific Intents
-        if any(w in q_lower for w in ["travel", "jaana", "gaddi", "trip", "highway", "drive", "safari"]):
-            return "travel"
-        elif any(w in q_lower for w in ["spraying", "crop", "kheti", "farmer", "farming", "pesticide", "fertilizer", "kisaan"]):
+        elif cat in ["CYCLING", "BIKE_RIDE", "CYCLING/BIKE_RIDE"]:
+            return "cycling" if cat == "CYCLING" else "bike_ride"
+        elif cat == "AGRICULTURE":
             return "agriculture"
-        elif any(w in q_lower for w in ["wedding", "match", "party", "function", "shaadi"]):
+        elif cat == "OUTDOOR_EVENT":
             return "event"
-        elif any(w in q_lower for w in ["warning", "alert", "danger", "heavy rain alert", "storm"]):
-            return "warning"
-
-        # Weather Parameters
-        if any(w in q_lower for w in ["rain", "baarish", "barish", "meeh", "shower", "drizzle", "barish hogi", "meeh pavega", "umbrella"]):
-            return "rain"
-        elif any(w in q_lower for w in ["temperature", "tapman", "taapman", "garmi", "thand", "temp", "hot", "cold"]):
-            return "temperature"
-        elif any(w in q_lower for w in ["humidity", "nami", "kitni"]):
-            return "humidity"
-        elif any(w in q_lower for w in ["wind", "hawa", "tez hawa", "breeze"]):
-            return "wind"
-        elif any(w in q_lower for w in ["uv", "uv index", "dhoop", "sunlight"]):
-            return "uv"
-        elif any(w in q_lower for w in ["visibility", "dhund", "fog", "smog"]):
-            return "visibility"
-        elif any(w in q_lower for w in ["pressure"]):
-            return "pressure"
-        elif any(w in q_lower for w in ["sunrise", "sunset", "suraj"]):
-            return "sunrise_sunset"
-        elif any(w in q_lower for w in ["is time", "right now", "current", "abhi", "is waqt"]):
+        elif cat == "ACTIVITY_SUITABILITY":
+            if "umbrella" in q_lower or "chhata" in q_lower or "raincoat" in q_lower:
+                return "umbrella"
+            if any(w in q_lower for w in ["travel", "trip", "journey", "drive", "jaana"]):
+                return "travel"
+            return "outdoor_activity"
+        elif cat == "COMPARISON":
+            return "comparison"
+        elif cat == "RANKING":
+            return "ranking"
+        elif cat == "HISTORICAL_WEATHER":
+            return "historical_weather"
+        elif cat == "WEATHER_CURRENT":
+            if any(w in q_lower for w in ["rain", "barish", "meeh", "shower", "raining"]):
+                return "rain"
+            if any(w in q_lower for w in ["temperature", "tapman", "temp"]):
+                return "temperature"
             return "current_weather"
-
+        elif cat == "WEATHER_RAIN":
+            if re.search(r'\b(kab\s+hogi|kab\s+hoga|kab\s+aayegi|kab\s+tak|when\s+will|what\s+time|kis\s+samay|kis\s+time)\b', q_lower):
+                return "rain_timing"
+            return "rain"
+        elif cat == "WEATHER_TEMPERATURE":
+            return "temperature"
+        elif cat == "WEATHER_HUMIDITY":
+            return "humidity"
+        elif cat == "WEATHER_WIND":
+            return "wind"
+        elif cat == "WEATHER_WARNING":
+            return "warning"
         return "forecast"
 
     def extract_location_and_state(
@@ -326,12 +547,43 @@ class NLPQueryParser:
         Returns:
         (resolved_location, extracted_state, has_explicit_location, is_state_query, missing_location)
         """
-        q_lower = re.sub(r"'s\b", "", query.lower().strip())
+        norm_query = normalize_query_text(query)
+        q_lower = re.sub(r"'s\b", "", norm_query.lower().strip())
 
-        # If query is non-weather conversation or gibberish, do NOT extract location
-        cat = self.classify_intent_category(query)
-        if cat in ["GREETING", "NON_WEATHER_CONVERSATION", "CAPABILITY", "THANKS", "UNCLEAR"]:
+        # If query is non-weather conversation, greeting, identity, capabilities, help, meta, or gibberish, do NOT extract location
+        cat = self.classify_intent_category(norm_query)
+        if cat in ["GREETING", "CONVERSATION", "IDENTITY", "CAPABILITIES", "HELP", "NON_WEATHER", "UNCLEAR"]:
             return "", None, False, False, True
+
+        # Special check for RANKING queries ("India mein sabse zyada barish kahan hogi")
+        if cat == "RANKING":
+            scope = "India"
+            for state_key, state_canonical in INDIAN_STATES.items():
+                if re.search(r'\b' + re.escape(state_key) + r'\b', q_lower):
+                    scope = state_canonical
+                    break
+            return scope, scope, True, True, False
+
+        # Early Devanagari city name detection: transliterate known Devanagari city names to romanized form
+        # This handles pure Hindi queries like "कल पटना में बारिश होगी?"
+        for dev_city, roman_city in DEVANAGARI_CITY_MAP.items():
+            if dev_city in norm_query:
+                # Check for Devanagari state names too
+                dev_state = None
+                for dev_st, roman_st in DEVANAGARI_STATE_MAP.items():
+                    if dev_st in norm_query and dev_st != dev_city:
+                        dev_state = roman_st
+                        break
+                if dev_state:
+                    return f"{roman_city}, {dev_state}", dev_state, True, False, False
+                return roman_city, None, True, False, False
+
+        # Also check for Devanagari state-only queries (e.g. "बिहार का मौसम")
+        for dev_st, roman_st in DEVANAGARI_STATE_MAP.items():
+            if dev_st in norm_query:
+                # Check this isn't also a city name (Delhi is both)
+                if dev_st not in DEVANAGARI_CITY_MAP:
+                    return roman_st, roman_st, True, True, False
 
         extracted_state = None
 
@@ -341,16 +593,38 @@ class NLPQueryParser:
                 extracted_state = state_canonical
                 break
 
-        # Check for city synonyms
+        # Check for multi-location comparison, e.g., "Delhi aur Mumbai", "Delhi and Mumbai"
+        multi_loc_match = re.search(r'\b([a-zA-Z\u0900-\u097f\u0a00-\u0a7f]+)\s+(?:aur|and|vs|versus)\s+([a-zA-Z\u0900-\u097f\u0a00-\u0a7f]+)\b', q_lower)
+        if multi_loc_match:
+            c1, c2 = multi_loc_match.group(1).title(), multi_loc_match.group(2).title()
+            if c1.lower() not in NON_LOCATION_STOPWORDS and c2.lower() not in NON_LOCATION_STOPWORDS:
+                return c1, extracted_state, True, False, False
+
+        # Check for city synonyms (e.g. Bombay -> Mumbai)
         for syn_key, syn_canonical in CITY_SYNONYMS.items():
             if re.search(r'\b' + re.escape(syn_key) + r'\b', q_lower):
                 return syn_canonical, extracted_state, True, False, False
 
-        # 1. Preposition Location Signals (English & Hindi/Punjabi)
-        # e.g., "in Amritsar", "at Jalandhar", "near Kapurthala", "for Delhi", "around Chandigarh"
-        prep_match = re.search(r'\b(?:in|at|near|around|from|for)\s+([A-Za-z\u0900-\u097f\u0a00-\u0a7f\s]+)', q_lower)
+        # Check for Nangli locality in Amritsar (e.g. "Amritsar ki Nangli", "Nangli Amritsar")
+        if "nangli" in q_lower or "nangali" in q_lower:
+            return "Nangli, Amritsar", "Punjab", True, False, False
+
+        # 1. Preposition Location Signals (English)
+        # Note: Strictly exclude "for" from location prepositions to prevent activities like "for bike ride" capturing as location
+        prep_match = re.search(r'\b(?:in|at|near|around|from)\s+([A-Za-z\u0900-\u097f\u0a00-\u0a7f\s,]+)', q_lower)
         if prep_match:
             candidate_raw = prep_match.group(1).strip()
+            # If comma-separated, preserve comma structure for multi-tier geocoding (e.g. Barcelona, Catalonia, Spain)
+            if "," in candidate_raw:
+                segments = [s.strip() for s in candidate_raw.split(",") if s.strip()]
+                clean_segments = []
+                for seg in segments:
+                    seg_words = [w.title() for w in re.findall(r'\b[a-zA-Z\u0900-\u097f\u0a00-\u0a7f]+\b', seg) if w.lower() not in NON_LOCATION_STOPWORDS]
+                    if seg_words:
+                        clean_segments.append(" ".join(seg_words))
+                if clean_segments:
+                    full_loc = ", ".join(clean_segments)
+                    return full_loc, extracted_state, True, False, False
             prep_words = [w.title() for w in re.findall(r'\b[a-zA-Z\u0900-\u097f\u0a00-\u0a7f]+\b', candidate_raw) if w.lower() not in NON_LOCATION_STOPWORDS]
             if prep_words:
                 clean_city_words = [w for w in prep_words if (not extracted_state or w.lower() != extracted_state.lower()) and w.lower() not in INDIAN_STATES]
@@ -362,7 +636,7 @@ class NLPQueryParser:
                 elif extracted_state:
                     return extracted_state, extracted_state, True, True, False
 
-        # Hindi/Punjabi postpositions e.g. "Amritsar mein", "Patna vich", "Jalandhar da", "Delhi ko", "Guwahati Asam ka"
+        # 2. Hindi/Punjabi postpositions e.g. "Amritsar mein", "Patna vich", "Jalandhar da", "Delhi ko", "Guwahati Asam ka"
         post_match = re.search(r'([A-Za-z\u0900-\u097f\u0a00-\u0a7f\s]+)\s+(?:mein|vich|da|de|di|nu|ka|ki|ke|par|ko)\b', q_lower)
         if post_match:
             candidate_raw = post_match.group(1).strip()
@@ -377,8 +651,8 @@ class NLPQueryParser:
                 elif extracted_state:
                     return extracted_state, extracted_state, True, True, False
 
-        # Location preceding weather keyword, e.g. "New York weather", "Delhi weather", "Patna weather"
-        weather_match = re.search(r'([A-Za-z\u0900-\u097f\u0a00-\u0a7f\s]+)\s+(?:weather|vedar|wether|weathr|mausam|forecast)\b', q_lower)
+        # 3. Location preceding weather keyword, e.g. "New York weather", "Delhi weather", "Patna weather"
+        weather_match = re.search(r'([A-Za-z\u0900-\u097f\u0a00-\u0a7f\s]+)\s+(?:weather|mausam|forecast)\b', q_lower)
         if weather_match:
             candidate_raw = weather_match.group(1).strip()
             w_words = [w.title() for w in re.findall(r'\b[a-zA-Z\u0900-\u097f\u0a00-\u0a7f]+\b', candidate_raw) if w.lower() not in NON_LOCATION_STOPWORDS]
@@ -392,7 +666,7 @@ class NLPQueryParser:
                 elif extracted_state:
                     return extracted_state, extracted_state, True, True, False
 
-        # 2. Check for known cities/states in token list (Strict Signal Validation)
+        # 4. Check for known cities/states in token list (Strict Signal Validation)
         words = re.findall(r'\b[a-zA-Z\u0900-\u097f\u0a00-\u0a7f]+\b', q_lower)
         candidate_words = []
         for word in words:
@@ -409,19 +683,19 @@ class NLPQueryParser:
             if clean_city_words:
                 city_name = " ".join(clean_city_words)
                 city_low = city_name.lower()
-                if city_low in KNOWN_CITIES or city_low in CITY_SYNONYMS or cat == "LOCATION_ONLY":
+                if city_low in KNOWN_CITIES or city_low in CITY_SYNONYMS or cat in ["LOCATION_ONLY", "CYCLING", "BIKE_RIDE", "CYCLING/BIKE_RIDE", "WEATHER_FORECAST", "WEATHER_CURRENT", "WEATHER_RAIN", "WEATHER_TEMPERATURE", "OUTDOOR_EVENT", "ACTIVITY_SUITABILITY", "AGRICULTURE"]:
                     if extracted_state:
                         return f"{city_name}, {extracted_state}", extracted_state, True, False, False
                     return city_name, extracted_state, True, False, False
             elif extracted_state:
                 return extracted_state, extracted_state, True, True, False
 
-        # If no city name, but an explicit state was mentioned (e.g., "Punjab ka weather", "Asam ka weather")
+        # If no city name, but an explicit state was mentioned (e.g., "Punjab ka weather", "Assam ka weather")
         if extracted_state:
             return extracted_state, extracted_state, True, True, False
 
-        # If no explicit location in query, use conversation session context IF query is a weather followup
-        if last_location and last_location.strip() and cat in ["WEATHER_FOLLOWUP", "WEATHER_QUERY"]:
+        # 5. Conversation Follow-up Context: use last_location ONLY if no explicit location exists in query
+        if last_location and last_location.strip() and cat not in ["GREETING", "HELP/CAPABILITY", "HELP", "CONVERSATION", "IDENTITY", "CAPABILITIES", "NON_WEATHER", "UNCLEAR"]:
             return last_location.strip(), None, False, False, False
 
         # Missing location entirely
@@ -435,10 +709,17 @@ class NLPQueryParser:
         """
         Returns (days_offset, date_label, is_out_of_range)
         """
+        norm_query = normalize_query_text(query)
         today = datetime.date.today()
-        q_lower = query.lower()
+        q_lower = norm_query.lower()
 
-        # Check for numeric date + month, e.g., "15 September", "september 15"
+        # 1. Past context check ("kal ... kya tha", "yesterday", "hui thi")
+        past_markers = [r'\byesterday\b', r'\bkal\b.*\b(tha|thi|the|si|kya\s+tha|hui\s+thi)\b', r'\bpichle\b', r'\bpast\b']
+        if any(re.search(pat, q_lower) for pat in past_markers):
+            yesterday = today - datetime.timedelta(days=1)
+            return -1, yesterday.strftime("%Y-%m-%d"), False
+
+        # 2. Check for numeric date + month, e.g., "15 September", "september 15"
         date_num_month = re.search(r'(\d{1,2})\s+([a-z\u0900-\u097f\u0a00-\u0a7f]+)', q_lower)
         month_date_num = re.search(r'([a-z\u0900-\u097f\u0a00-\u0a7f]+)\s+(\d{1,2})', q_lower)
 
@@ -475,16 +756,18 @@ class NLPQueryParser:
                     break
 
         if not target_date:
-            if "day after tomorrow" in q_lower or "parson" in q_lower or "parso" in q_lower:
+            if "day after tomorrow" in q_lower or "parso" in q_lower:
                 target_date = today + datetime.timedelta(days=2)
-            elif "tomorrow" in q_lower or "kal" in q_lower or "kallh" in q_lower:
+            elif "tomorrow" in q_lower or "kal" in q_lower:
                 target_date = today + datetime.timedelta(days=1)
-            elif "today" in q_lower or "aaj" in q_lower or "ajj" in q_lower or "is time" in q_lower or "right now" in q_lower or "abhi" in q_lower or "tonight" in q_lower:
+            elif "today" in q_lower or "aaj" in q_lower or "ajj" in q_lower or "is time" in q_lower or "right now" in q_lower or "abhi" in q_lower or "vartman" in q_lower or "tonight" in q_lower:
                 target_date = today
 
         if target_date:
             offset = (target_date - today).days
             if 0 <= offset <= 14:
+                return offset, target_date.strftime("%Y-%m-%d"), False
+            elif offset < 0:
                 return offset, target_date.strftime("%Y-%m-%d"), False
             else:
                 return max(0, min(offset, 14)), target_date.strftime("%Y-%m-%d"), True
@@ -508,14 +791,68 @@ class NLPQueryParser:
         last_location: Optional[str] = None,
         last_date: Optional[str] = None
     ) -> Dict[str, Any]:
-        lang = self.detect_language(query)
-        intent_cat = self.classify_intent_category(query)
-        intent = self.classify_intent(query)
-        loc, state, has_explicit_loc, is_state_query, missing_loc = self.extract_location_and_state(query, last_location)
-        offset, date_label, is_out_of_range = self.extract_date_offset(query, last_date)
+        norm_q = normalize_query_text(query)
+        lang = self.detect_language(norm_q)
+        intent_cat = self.classify_intent_category(norm_q)
+        intent = self.classify_intent(norm_q)
+        loc, state, has_explicit_loc, is_state_query, missing_loc = self.extract_location_and_state(norm_q, last_location)
+        offset, date_label, is_out_of_range = self.extract_date_offset(norm_q, last_date)
+
+        # Check for multiple locations (comparison)
+        comparison_locations = []
+        multi_loc_match = re.search(r'\b([a-zA-Z\u0900-\u097f\u0a00-\u0a7f]+)\s+(?:aur|and|vs|versus)\s+([a-zA-Z\u0900-\u097f\u0a00-\u0a7f]+)\b', norm_q.lower())
+        if multi_loc_match:
+            c1, c2 = multi_loc_match.group(1).title(), multi_loc_match.group(2).title()
+            if c1.lower() not in NON_LOCATION_STOPWORDS and c2.lower() not in NON_LOCATION_STOPWORDS:
+                comparison_locations = [c1, c2]
+
+        # Check for multiple dates comparison (e.g. Friday and Saturday)
+        comparison_dates = []
+        for day_name in ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]:
+            if re.search(r'\b' + day_name.lower() + r'\b', norm_q.lower()):
+                comparison_dates.append(day_name)
+
+        # Check for time of day
+        time_of_day = None
+        q_low = norm_q.lower()
+        if any(w in q_low for w in ["morning", "subah"]):
+            time_of_day = "morning"
+        elif any(w in q_low for w in ["afternoon", "dopahar"]):
+            time_of_day = "afternoon"
+        elif any(w in q_low for w in ["evening", "shaam"]):
+            time_of_day = "evening"
+        elif any(w in q_low for w in ["night", "raat", "tonight"]):
+            time_of_day = "night"
+
+        is_historical = (offset < 0 or intent_cat == "HISTORICAL_WEATHER")
+        is_continuous_rain = bool(re.search(r'\b(is\s+rain\s+is\s+happening|is\s+rain\s+happening|is\s+it\s+raining|raining\s+now|raining\s+right\s+now|barish\s+ho\s+rahi\s+hai|ho\s+rahi\s+hai)\b', q_low))
+        if is_continuous_rain and intent_cat != "RANKING":
+            offset = 0
+            date_label = "today"
+            is_current = True
+            intent_cat = "WEATHER_CURRENT"
+            intent = "rain"
+        else:
+            is_current = (offset == 0 and (intent_cat == "WEATHER_CURRENT" or is_continuous_rain or any(w in q_low for w in ["abhi", "vartman", "right now", "current", "is time", "is waqt"])))
+        # Check for ranking
+        ranking_scope = None
+        ranking_metric = "rain"
+        if intent_cat == "RANKING":
+            ranking_scope = loc or "India"
+            if any(w in q_low for w in ["temp", "temperature", "tapman", "garmi", "hot", "hottest"]):
+                ranking_metric = "temperature_max"
+            elif any(w in q_low for w in ["cold", "coldest", "thand", "minimum"]):
+                ranking_metric = "temperature_min"
+            else:
+                ranking_metric = "rain"
+
+        is_timing_query = bool(re.search(r'\b(kab\s+hogi|kab\s+hoga|kab\s+aayegi|kab\s+tak|when\s+will|what\s+time|kis\s+samay|kis\s+time)\b', norm_q.lower()))
+        if is_timing_query and intent_cat == "WEATHER_RAIN":
+            intent = "rain_timing"
 
         return {
             "query": query,
+            "normalized_query": norm_q,
             "detected_language": lang,
             "intent_category": intent_cat,
             "extracted_intent": intent,
@@ -526,7 +863,15 @@ class NLPQueryParser:
             "missing_location": missing_loc,
             "date_offset": offset,
             "date_label": date_label,
-            "is_out_of_range": is_out_of_range
+            "is_out_of_range": is_out_of_range,
+            "is_historical": is_historical,
+            "is_current": is_current,
+            "is_timing_query": is_timing_query,
+            "ranking_scope": ranking_scope,
+            "ranking_metric": ranking_metric,
+            "time_of_day": time_of_day,
+            "comparison_locations": comparison_locations,
+            "comparison_dates": comparison_dates
         }
 
 

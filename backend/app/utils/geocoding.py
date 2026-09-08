@@ -16,6 +16,7 @@ MAJOR_INDIAN_LOCATIONS = {
     "patna, bihar": {"name": "Patna", "state": "Bihar", "country": "India", "display_name": "Patna, Bihar, India", "latitude": 25.5941, "longitude": 85.1376},
     "kapurthala": {"name": "Kapurthala", "state": "Punjab", "country": "India", "display_name": "Kapurthala, Punjab, India", "latitude": 31.3801, "longitude": 75.3811},
     "kapurthala, punjab": {"name": "Kapurthala", "state": "Punjab", "country": "India", "display_name": "Kapurthala, Punjab, India", "latitude": 31.3801, "longitude": 75.3811},
+    "kapurthala punjab": {"name": "Kapurthala", "state": "Punjab", "country": "India", "display_name": "Kapurthala, Punjab, India", "latitude": 31.3801, "longitude": 75.3811},
     "jalandhar": {"name": "Jalandhar", "state": "Punjab", "country": "India", "display_name": "Jalandhar, Punjab, India", "latitude": 31.3256, "longitude": 75.5792},
     "jalandhar, punjab": {"name": "Jalandhar", "state": "Punjab", "country": "India", "display_name": "Jalandhar, Punjab, India", "latitude": 31.3256, "longitude": 75.5792},
     "amritsar": {"name": "Amritsar", "state": "Punjab", "country": "India", "display_name": "Amritsar, Punjab, India", "latitude": 31.6340, "longitude": 74.8723},
@@ -46,7 +47,14 @@ MAJOR_INDIAN_LOCATIONS = {
     "guwahati, asam": {"name": "Guwahati", "state": "Assam", "country": "India", "display_name": "Guwahati, Assam, India", "latitude": 26.1445, "longitude": 91.7362},
     "guwahati asam": {"name": "Guwahati", "state": "Assam", "country": "India", "display_name": "Guwahati, Assam, India", "latitude": 26.1445, "longitude": 91.7362},
     "pune": {"name": "Pune", "state": "Maharashtra", "country": "India", "display_name": "Pune, Maharashtra, India", "latitude": 18.5204, "longitude": 73.8567},
-    "pune, maharashtra": {"name": "Pune", "state": "Maharashtra", "country": "India", "display_name": "Pune, Maharashtra, India", "latitude": 18.5204, "longitude": 73.8567}
+    "pune, maharashtra": {"name": "Pune", "state": "Maharashtra", "country": "India", "display_name": "Pune, Maharashtra, India", "latitude": 18.5204, "longitude": 73.8567},
+    "hisar": {"name": "Hisar", "state": "Haryana", "country": "India", "display_name": "Hisar, Haryana, India", "latitude": 29.1539, "longitude": 75.7229},
+    "hisar, haryana": {"name": "Hisar", "state": "Haryana", "country": "India", "display_name": "Hisar, Haryana, India", "latitude": 29.1539, "longitude": 75.7229},
+    "hisar haryana": {"name": "Hisar", "state": "Haryana", "country": "India", "display_name": "Hisar, Haryana, India", "latitude": 29.1539, "longitude": 75.7229},
+    "nangli": {"name": "Nangli", "state": "Punjab", "country": "India", "display_name": "Nangli, Amritsar, Punjab, India", "latitude": 31.6500, "longitude": 74.8800},
+    "nangli, amritsar": {"name": "Nangli", "state": "Punjab", "country": "India", "display_name": "Nangli, Amritsar, Punjab, India", "latitude": 31.6500, "longitude": 74.8800},
+    "nangli amritsar": {"name": "Nangli", "state": "Punjab", "country": "India", "display_name": "Nangli, Amritsar, Punjab, India", "latitude": 31.6500, "longitude": 74.8800},
+    "nangali": {"name": "Nangli", "state": "Punjab", "country": "India", "display_name": "Nangli, Amritsar, Punjab, India", "latitude": 31.6500, "longitude": 74.8800}
 }
 
 
@@ -64,13 +72,18 @@ async def search_locations(query: str, limit: int = 10, state_hint: Optional[str
     if clean_lower in MAJOR_INDIAN_LOCATIONS:
         return [MAJOR_INDIAN_LOCATIONS[clean_lower].copy()]
 
-    # Handle composite queries like "Patna Bihar" or "Patna, Bihar"
+    # Handle composite queries like "Patna Bihar", "Patna, Bihar", "Barcelona, Catalonia, Spain"
     search_target = clean_query
     if "," in clean_query:
         parts = [p.strip() for p in clean_query.split(",")]
         search_target = parts[0]
         if not state_hint and len(parts) > 1:
             state_hint = parts[1]
+    elif len(clean_query.split()) > 1:
+        words = clean_query.split()
+        search_target = words[0]
+        if not state_hint:
+            state_hint = " ".join(words[1:])
 
     url = "https://geocoding-api.open-meteo.com/v1/search"
     params = {
@@ -80,53 +93,63 @@ async def search_locations(query: str, limit: int = 10, state_hint: Optional[str
         "format": "json"
     }
 
-    try:
-        async with httpx.AsyncClient(timeout=4.0) as client:
-            resp = await client.get(url, params=params)
-            if resp.status_code == 200:
-                data = resp.json()
-                results = []
-                for item in data.get("results", []):
-                    name = item.get("name", "")
-                    state = item.get("admin1", item.get("admin2", ""))
-                    country = item.get("country", "")
-                    country_code = item.get("country_code", "").upper()
+    for attempt in range(2):
+        try:
+            async with httpx.AsyncClient(timeout=15.0) as client:
+                resp = await client.get(url, params=params)
+                if resp.status_code == 200:
+                    data = resp.json()
+                    results = []
+                    for item in data.get("results", []):
+                        name = item.get("name", "")
+                        state = item.get("admin1", item.get("admin2", ""))
+                        country = item.get("country", "")
+                        country_code = item.get("country_code", "").upper()
 
-                    # Scoring logic to prioritize Indian locations and correct states
-                    score = 0
-                    if country_code == "IN" or country.lower() == "india":
-                        score += 100
-                    if state_hint and state and state_hint.lower() in state.lower():
-                        score += 200
-                    if name.lower() == search_target.lower():
-                        score += 50
+                        # Scoring logic to prioritize Indian locations and correct states
+                        population = item.get("population", 0) or 0
+                        score = 0
+                        if country_code == "IN" or country.lower() == "india":
+                            score += 100
+                        if state_hint and state and state_hint.lower() in state.lower():
+                            score += 200
+                        if name.lower() == search_target.lower():
+                            score += 50
+                        # Population tiebreaker: use log10 scale so 9M city (~7pts) beats 400K (~5.6pts)
+                        # This prevents false ambiguity for clearly dominant cities like London, England
+                        import math
+                        if population > 0:
+                            score += round(math.log10(population), 1)
 
-                    display_parts = [name]
-                    if state and state.lower() != name.lower():
-                        display_parts.append(state)
-                    if country:
-                        display_parts.append(country)
+                        display_parts = [name]
+                        if state and state.lower() != name.lower():
+                            display_parts.append(state)
+                        if country:
+                            display_parts.append(country)
 
-                    display_name = ", ".join(display_parts)
+                        display_name = ", ".join(display_parts)
 
-                    results.append({
-                        "name": name,
-                        "state": state,
-                        "country": country,
-                        "country_code": country_code,
-                        "display_name": display_name,
-                        "latitude": round(float(item["latitude"]), 4),
-                        "longitude": round(float(item["longitude"]), 4),
-                        "elevation": item.get("elevation", 0),
-                        "score": score
-                    })
+                        results.append({
+                            "name": name,
+                            "state": state,
+                            "country": country,
+                            "country_code": country_code,
+                            "display_name": display_name,
+                            "latitude": round(float(item["latitude"]), 4),
+                            "longitude": round(float(item["longitude"]), 4),
+                            "elevation": item.get("elevation", 0),
+                            "score": score
+                        })
 
-                # Sort candidates by score descending
-                results.sort(key=lambda x: x["score"], reverse=True)
-                if results:
-                    return results
-    except Exception as e:
-        logger.warning(f"Geocoding autocomplete search failed for '{query}': {e}")
+                    # Sort candidates by score descending
+                    results.sort(key=lambda x: x["score"], reverse=True)
+                    if results:
+                        return results
+        except Exception as e:
+            if attempt == 1:
+                logger.warning(f"Geocoding autocomplete search failed for '{query}': {e}")
+            import asyncio
+            await asyncio.sleep(0.3)
 
     # Fallback to major locations lookup
     if search_target.lower() in MAJOR_INDIAN_LOCATIONS:
@@ -174,6 +197,7 @@ async def reverse_geocode(lat: float, lon: float) -> Dict[str, Any]:
 async def geocode_location(location_name: str, state_hint: Optional[str] = None) -> Optional[Dict[str, Any]]:
     """
     Resolves location name to latitude, longitude, state, country with Indian preference.
+    Detects ambiguous multi-state locations (e.g. Springfield).
     Returns None if location is unresolvable (does NOT force Amritsar silently).
     """
     clean_name = location_name.strip()
@@ -190,8 +214,26 @@ async def geocode_location(location_name: str, state_hint: Optional[str] = None)
     if clean_lower in MAJOR_INDIAN_LOCATIONS:
         return MAJOR_INDIAN_LOCATIONS[clean_lower].copy()
 
+    # Also try normalized forms: "Kapurthala, Punjab" -> "kapurthala, punjab" and "kapurthala punjab"
+    clean_lower_nospace = clean_lower.replace(", ", " ").replace(",", " ").strip()
+    if clean_lower_nospace != clean_lower and clean_lower_nospace in MAJOR_INDIAN_LOCATIONS:
+        return MAJOR_INDIAN_LOCATIONS[clean_lower_nospace].copy()
+
     matches = await search_locations(clean_name, limit=10, state_hint=state_hint)
     if matches:
+        # Check for ambiguity if no state hint was given and multiple top results have equal scores across different states
+        if not state_hint and len(matches) > 1:
+            top = matches[0]
+            second = matches[1]
+            if top["score"] == second["score"] and top.get("state") and second.get("state") and top.get("state") != second.get("state"):
+                return {
+                    "is_ambiguous": True,
+                    "name": top["name"],
+                    "options": [m["display_name"] for m in matches[:3]],
+                    "latitude": top["latitude"],
+                    "longitude": top["longitude"],
+                    "display_name": top["display_name"]
+                }
         return matches[0]
 
     # Secondary attempt: ONLY if composite location (e.g. "Patna Bihar"), check if first word is a known major location

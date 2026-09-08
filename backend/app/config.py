@@ -28,7 +28,7 @@ class Settings(BaseSettings):
     SECRET_KEY: str = "weathergpt_sih2026_super_secret_key"
     
     # Provider timeouts (seconds)
-    WEATHER_API_TIMEOUT: float = 8.0
+    WEATHER_API_TIMEOUT: float = 9.0
     
     model_config = SettingsConfigDict(
         env_file=".env",

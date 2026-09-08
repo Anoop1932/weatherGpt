@@ -36,8 +36,8 @@ export const RiskBadge = ({ level = 'LOW', showIcon = true, className = '' }) =>
 
   return (
     <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium border ${current.bg} ${className}`}>
-      {showIcon && <Icon className="w-3.5 h-3.5" />}
-      {label}
+      {showIcon && <Icon className="w-3.5 h-3.5" aria-hidden="true" focusable="false" />}
+      <span>{label}</span>
     </span>
   );
 };

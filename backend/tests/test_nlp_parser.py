@@ -60,3 +60,80 @@ def test_intent_extraction():
     parsed_agri = nlp_parser.parse("Kal spraying karna suitable hai?")
     assert parsed_agri["extracted_intent"] == "agriculture"
 
+
+def test_section_aa_test_matrix():
+    # 1. Non-weather Conversation must not trigger weather
+    p_conv1 = nlp_parser.parse("kya hal hai")
+    assert p_conv1["intent_category"] == "CONVERSATION"
+    assert p_conv1["resolved_location"] == ""
+
+    p_conv2 = nlp_parser.parse("kya haal hai bhai")
+    assert p_conv2["intent_category"] == "CONVERSATION"
+
+    p_conv3 = nlp_parser.parse("how are you")
+    assert p_conv3["intent_category"] == "CONVERSATION"
+
+    p_conv4 = nlp_parser.parse("tum kaise ho")
+    assert p_conv4["intent_category"] == "CONVERSATION"
+
+    # 2. Cycling / Bike Ride extraction
+    p_bike = nlp_parser.parse("is it good to go for bike ride in Mumbai tomorrow")
+    assert p_bike["intent_category"] in ["BIKE_RIDE", "CYCLING", "CYCLING/BIKE_RIDE"]
+    assert p_bike["extracted_intent"] in ["cycling", "bike_ride", "bike ride"]
+    assert p_bike["resolved_location"] == "Mumbai"
+    assert p_bike["date_offset"] == 1
+
+    # 3. Current Weather (vartman / abhi)
+    p_curr = nlp_parser.parse("Hisar Haryana mein abhi vartman ka tapman kya hai")
+    assert p_curr["resolved_location"] == "Hisar, Haryana"
+    assert p_curr["date_offset"] == 0
+    assert p_curr["is_current"] is True
+
+    # 4. Outdoor events
+    p_events = nlp_parser.parse("Is tomorrow good for outdoor events in Patna, Bihar, India?")
+    assert p_events["intent_category"] == "OUTDOOR_EVENT"
+    assert "Patna" in p_events["resolved_location"]
+    assert p_events["date_offset"] == 1
+
+    # 5. Comparison
+    p_comp = nlp_parser.parse("Delhi aur Mumbai ka weather compare karo")
+    assert p_comp["intent_category"] == "COMPARISON"
+    assert p_comp["comparison_locations"] == ["Delhi", "Mumbai"]
+
+    # 6. Multi-date comparison
+    p_date_comp = nlp_parser.parse("Friday aur Saturday mein kaunsa din bike ride ke liye better hai?")
+    assert p_date_comp["intent_category"] == "COMPARISON"
+    assert "Friday" in p_date_comp["comparison_dates"]
+    assert "Saturday" in p_date_comp["comparison_dates"]
+
+    # 7. Historical Weather
+    p_hist1 = nlp_parser.parse("kal Patna mein temperature kya tha?")
+    assert p_hist1["intent_category"] == "HISTORICAL_WEATHER"
+    assert p_hist1["is_historical"] is True
+    assert p_hist1["date_offset"] == -1
+    assert p_hist1["resolved_location"] == "Patna"
+
+    p_hist2 = nlp_parser.parse("yesterday Mumbai mein rain hui?")
+    assert p_hist2["intent_category"] == "HISTORICAL_WEATHER"
+    assert p_hist2["is_historical"] is True
+    assert p_hist2["date_offset"] == -1
+    assert p_hist2["resolved_location"] == "Mumbai"
+
+    # 8. Follow-up Context Preservation
+    p_fu1 = nlp_parser.parse("kal?", last_location="Patna", last_date="2026-09-08")
+    assert p_fu1["resolved_location"] == "Patna"
+    assert p_fu1["date_offset"] == 1
+
+    p_fu2 = nlp_parser.parse("barish?", last_location="Patna", last_date="2026-09-09")
+    assert p_fu2["resolved_location"] == "Patna"
+    assert p_fu2["extracted_intent"] == "rain"
+
+    p_fu3 = nlp_parser.parse("bike ride ke liye?", last_location="Patna", last_date="2026-09-09")
+    assert p_fu3["resolved_location"] == "Patna"
+    assert p_fu3["intent_category"] in ["BIKE_RIDE", "CYCLING", "CYCLING/BIKE_RIDE"]
+
+    # 9. Explicit location overrides previous context
+    p_override = nlp_parser.parse("Delhi mein kal barish hogi?", last_location="Patna")
+    assert p_override["resolved_location"] == "Delhi"
+    assert p_override["has_explicit_location"] is True
+

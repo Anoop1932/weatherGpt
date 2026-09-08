@@ -176,8 +176,10 @@ export const cleanTextForSpeech = (text, lang) => {
   // 3. Strip raw URLs
   content = content.replace(/https?:\/\/\S+/gi, '');
 
-  // 4. Strip HTML tags
+  // 4. Strip SVG and HTML tags
+  content = content.replace(/<svg[\s\S]*?<\/svg>/gi, '');
   content = content.replace(/<[^>]+>/g, '');
+  content = content.replace(/\b(?:svg|SVG)\b/g, '');
 
   // 5. Strip emojis and emoticons completely
   content = stripEmojis(content);

@@ -12,6 +12,7 @@ STRICT GROUNDING RULES:
    - Verified Data Source & Timestamp
    - Forecast confidence level (HIGH / MODERATE / LOW)
 5. Include official disclaimers: WeatherGPT is advisory decision support and does not issue official evacuation orders.
+6. NEVER include HTML or SVG tags (<svg>, </svg>, <img>, etc.), raw icon names, or UI serialization tokens in your text response. All responses must be clean, natural language text.
 """
 
 GROUNDED_USER_TEMPLATE = """

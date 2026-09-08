@@ -92,6 +92,7 @@ class WeatherQueryRequest(BaseModel):
     last_location: Optional[str] = None
     last_date: Optional[str] = None
     last_intent: Optional[str] = None
+    conversation_context: Optional[List[Dict[str, Any]]] = None
 
 
 class RiskEvaluation(BaseModel):
@@ -109,8 +110,10 @@ class WeatherQueryResponse(BaseModel):
     extracted_intent: str
     resolved_location: str
     resolved_date: str
-    response_type: str = Field("weather", description="weather | conversation | clarification | error")
+    response_type: str = Field("weather", description="weather | conversation | clarification | error | comparison | ranking | activity")
     weather_facts: Optional[Dict[str, Any]] = None
+    comparison_data: Optional[List[Dict[str, Any]]] = None
+    ranking_data: Optional[List[Dict[str, Any]]] = None
     risk_evaluation: Optional[RiskEvaluation] = None
     grounded_answer: str
     source: str = "WeatherGPT Intelligence Engine"

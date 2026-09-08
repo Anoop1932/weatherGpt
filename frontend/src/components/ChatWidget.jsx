@@ -23,10 +23,17 @@ import {
 
 const FormattedText = ({ text }) => {
   if (!text) return null;
-  const blocks = text.split('\n\n');
+  // Sanitize text completely: strip <svg> tags, HTML tags, and literal svg leaked tokens
+  const clean = text
+    .replace(/<svg[\s\S]*?<\/svg>/gi, '')
+    .replace(/<[^>]+>/g, '')
+    .replace(/\bsvg[a-zA-Z0-9\s:°%/.-]*?svg\b/gi, '')
+    .replace(/\bsvg\b/gi, '');
+  const blocks = clean.split('\n\n');
   return (
     <div className="space-y-2 text-slate-800 dark:text-slate-200">
       {blocks.map((block, bIdx) => {
+        if (!block.trim()) return null;
         if (block.trim() === '---') {
           return <hr key={bIdx} className="border-slate-200 dark:border-slate-700 my-2" />;
         }
@@ -139,7 +146,7 @@ export const ChatWidget = () => {
       {/* Header Info */}
       <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-700/80 pb-2">
         <div className="flex items-center gap-2 text-xs font-bold text-slate-900 dark:text-white">
-          <Sparkles className="w-4 h-4 text-sky-600 dark:text-sky-400" />
+          <Sparkles className="w-4 h-4 text-sky-600 dark:text-sky-400" aria-hidden="true" focusable="false" />
           <span>{t('app_name', language)} — {t('ai_assistant', language)}</span>
         </div>
         <span className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">{t('app_tagline', language)}</span>
@@ -148,7 +155,7 @@ export const ChatWidget = () => {
       {/* Input Form Bar with Voice Icon */}
       <form onSubmit={(e) => { e.preventDefault(); handleSend(); }} className="relative flex items-center gap-2">
         <div className="relative flex-1">
-          <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+          <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" aria-hidden="true" focusable="false" />
           <input
             type="text"
             value={inputText}
@@ -168,7 +175,7 @@ export const ChatWidget = () => {
             }`}
             title={isListening ? t('listening', language) : t('voice_input', language)}
           >
-            {isListening ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
+            {isListening ? <MicOff className="w-4 h-4" aria-hidden="true" focusable="false" /> : <Mic className="w-4 h-4" aria-hidden="true" focusable="false" />}
           </button>
         </div>
 
@@ -178,7 +185,7 @@ export const ChatWidget = () => {
           disabled={isSending || !inputText.trim()}
           className="px-4 py-3 bg-sky-600 hover:bg-sky-700 dark:bg-sky-500 dark:hover:bg-sky-600 disabled:opacity-40 text-white font-medium text-xs rounded-2xl flex items-center gap-1.5 transition shrink-0 shadow-xs"
         >
-          {isSending ? <RefreshCw className="w-4 h-4 animate-spin text-white" /> : <ArrowRight className="w-4 h-4" />}
+          {isSending ? <RefreshCw className="w-4 h-4 animate-spin text-white" aria-hidden="true" focusable="false" /> : <ArrowRight className="w-4 h-4" aria-hidden="true" focusable="false" />}
           <span className="hidden sm:inline">{t('ask_ai', language)}</span>
         </button>
 
@@ -190,7 +197,7 @@ export const ChatWidget = () => {
             className="p-3 bg-amber-50 dark:bg-amber-950/60 hover:bg-amber-100 dark:hover:bg-amber-900 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800 rounded-2xl text-xs flex items-center gap-1.5 transition shrink-0"
             title={t('stop_voice', language)}
           >
-            <Square className="w-3.5 h-3.5 fill-current" />
+            <Square className="w-3.5 h-3.5 fill-current" aria-hidden="true" focusable="false" />
             <span className="hidden sm:inline">{t('stop_voice', language)}</span>
           </button>
         )}
@@ -218,9 +225,9 @@ export const ChatWidget = () => {
             onClick={() => setExpanded(!expanded)}
             className="text-[11px] text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white flex items-center gap-1 shrink-0 ml-auto font-medium"
           >
-            <MessageSquare className="w-3 h-3 text-sky-600 dark:text-sky-400" />
+            <MessageSquare className="w-3 h-3 text-sky-600 dark:text-sky-400" aria-hidden="true" focusable="false" />
             <span>{chatMessages.length - 1} {t('conversation_items', language)}</span>
-            {expanded ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+            {expanded ? <ChevronUp className="w-3 h-3" aria-hidden="true" focusable="false" /> : <ChevronDown className="w-3 h-3" aria-hidden="true" focusable="false" />}
           </button>
         )}
       </div>
@@ -241,7 +248,7 @@ export const ChatWidget = () => {
                       ? 'bg-sky-100 dark:bg-sky-950 text-sky-700 dark:text-sky-300 border border-sky-200 dark:border-sky-800' 
                       : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700'
                   }`}>
-                    {isUser ? <User className="w-3.5 h-3.5" /> : <Bot className="w-3.5 h-3.5 text-sky-600 dark:text-sky-400" />}
+                    {isUser ? <User className="w-3.5 h-3.5" aria-hidden="true" focusable="false" /> : <Bot className="w-3.5 h-3.5 text-sky-600 dark:text-sky-400" aria-hidden="true" focusable="false" />}
                   </div>
 
                   <div className={`max-w-[85%] rounded-2xl p-3.5 text-xs leading-relaxed ${
@@ -253,7 +260,7 @@ export const ChatWidget = () => {
                       <div className="flex items-center justify-between gap-2 mb-1 pb-1 border-b border-slate-200/80 dark:border-slate-700">
                         <span className="font-bold text-slate-900 dark:text-white text-[11px]">WeatherGPT</span>
                         <div className="flex items-center gap-2">
-                          {msg.response_type === 'weather' && msg.risk_level && (
+                          {(msg.response_type === 'weather' || msg.response_type === 'activity') && msg.risk_level && (
                             <RiskBadge level={msg.risk_level} />
                           )}
                           <button
@@ -262,27 +269,71 @@ export const ChatWidget = () => {
                             className="p-1 rounded text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-700 transition"
                             title="Read aloud"
                           >
-                            <Volume2 className="w-3 h-3" />
+                            <Volume2 className="w-3 h-3" aria-hidden="true" focusable="false" />
                           </button>
                         </div>
                       </div>
                     )}
 
-                    {isUser ? (
-                      <div>{msg.text}</div>
-                    ) : (
-                      <FormattedText text={msg.text} />
-                    )}
+                    <div className="chat-message-text space-y-2">
+                      {isUser ? (
+                        <div>{msg.text}</div>
+                      ) : (
+                        <FormattedText text={msg.text} />
+                      )}
+                    </div>
 
-                    {!isUser && msg.response_type === 'weather' && msg.weather_facts && (
-                      <div className="mt-2 pt-2 border-t border-slate-200/80 dark:border-slate-700 grid grid-cols-2 sm:grid-cols-4 gap-2 text-[10px] text-slate-500 dark:text-slate-400 font-medium">
+                    {/* Standard Single-Location Weather Card */}
+                    {!isUser && (msg.response_type === 'weather' || msg.response_type === 'activity') && msg.weather_facts && (
+                      <div className="weather-card-container mt-2 pt-2 border-t border-slate-200/80 dark:border-slate-700 grid grid-cols-2 sm:grid-cols-4 gap-2 text-[10px] text-slate-500 dark:text-slate-400 font-medium">
                         <div className="flex items-center gap-1">
                           {getWeatherIcon(msg.weather_facts.weather_code, true, "w-3.5 h-3.5")}
-                          <span>Max: <strong className="text-slate-800 dark:text-slate-200">{msg.weather_facts.temp_max_c}°C</strong></span>
+                          <span>{msg.weather_facts.is_current_observation ? 'Now:' : 'Max:'} <strong className="text-slate-800 dark:text-slate-200">{msg.weather_facts.is_current_observation ? (msg.weather_facts.temperature_c ?? msg.weather_facts.temp_max_c) : msg.weather_facts.temp_max_c}°C</strong></span>
                         </div>
                         <div>Rain: <strong className="text-slate-800 dark:text-slate-200">{msg.weather_facts.rain_probability}%</strong></div>
-                        <div>Wind: <strong className="text-slate-800 dark:text-slate-200">{msg.weather_facts.max_wind_kmh} km/h</strong></div>
+                        <div>Wind: <strong className="text-slate-800 dark:text-slate-200">{msg.weather_facts.max_wind_kmh || msg.weather_facts.wind_speed_kmh} km/h</strong></div>
                         <div>Cond: <strong className="text-slate-800 dark:text-slate-200">{msg.weather_facts.condition_text}</strong></div>
+                      </div>
+                    )}
+
+                    {/* Dual-Location Comparison Cards */}
+                    {!isUser && msg.response_type === 'comparison' && msg.comparison_data && (
+                      <div className="comparison-cards-container mt-2 pt-2 border-t border-slate-200/80 dark:border-slate-700 grid grid-cols-1 sm:grid-cols-2 gap-2 text-[10px]">
+                        {msg.comparison_data.map((cFact, cIdx) => (
+                          <div key={cIdx} className="bg-white dark:bg-slate-900/60 p-2 rounded-xl border border-slate-200 dark:border-slate-700 space-y-1">
+                            <div className="font-bold text-slate-900 dark:text-white flex items-center justify-between">
+                              <span>{cFact.location || `Location ${cIdx + 1}`}</span>
+                              <span className="text-sky-600 dark:text-sky-400">{cFact.temperature_c ?? cFact.temp_max_c}°C</span>
+                            </div>
+                            <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400">
+                              <span>Rain: <strong className="text-slate-700 dark:text-slate-300">{cFact.rain_probability}%</strong></span>
+                              <span>•</span>
+                              <span>{cFact.condition_text}</span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Regional Ranking List Card */}
+                    {!isUser && msg.response_type === 'ranking' && msg.ranking_data && (
+                      <div className="ranking-cards-container mt-2 pt-2 border-t border-slate-200/80 dark:border-slate-700 space-y-1.5 text-[10px]">
+                        <div className="font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider text-[9px]">
+                          Regional Rainfall Forecast Ranking:
+                        </div>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
+                          {msg.ranking_data.slice(0, 6).map((rankItem, rIdx) => (
+                            <div key={rIdx} className="flex items-center justify-between p-1.5 rounded-lg bg-white dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700">
+                              <span className="font-medium text-slate-900 dark:text-white">
+                                <span className="text-sky-600 dark:text-sky-400 font-bold mr-1">#{rIdx + 1}</span>
+                                {rankItem.city}
+                              </span>
+                              <span className="text-slate-600 dark:text-slate-300 font-semibold">
+                                {rankItem.rain_probability}% <span className="text-slate-400 font-normal">({rankItem.precipitation_mm}mm)</span>
+                              </span>
+                            </div>
+                          ))}
+                        </div>
                       </div>
                     )}
                   </div>
@@ -294,10 +345,10 @@ export const ChatWidget = () => {
             {isSending && (
               <div className="flex items-start gap-2.5">
                 <div className="w-7 h-7 rounded-lg bg-slate-100 dark:bg-slate-800 text-sky-600 dark:text-sky-400 border border-slate-200 dark:border-slate-700 flex items-center justify-center text-xs shrink-0">
-                  <Bot className="w-3.5 h-3.5" />
+                  <Bot className="w-3.5 h-3.5" aria-hidden="true" focusable="false" />
                 </div>
                 <div className="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-4 py-3 rounded-2xl rounded-tl-none text-xs text-slate-600 dark:text-slate-300 flex items-center gap-2">
-                  <RefreshCw className="w-3.5 h-3.5 animate-spin text-sky-600 dark:text-sky-400" />
+                  <RefreshCw className="w-3.5 h-3.5 animate-spin text-sky-600 dark:text-sky-400" aria-hidden="true" focusable="false" />
                   <span>{t('thinking', language)}</span>
                 </div>
               </div>
